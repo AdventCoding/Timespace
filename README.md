@@ -40,14 +40,15 @@ let data = {
 	],
 	events: [
 		{
-			start:       number        // The start time for the event
-			end:         number        // The optional end time for the event
-			title:       string        // The text for the event title
+			start:       number         // The start time for the event
+			end:         number         // The optional end time for the event
+			title:       string         // The text for the event title
 			description: string||jQuery // The optional text or jQuery Object for the event description
-			width:       number        // The optional width for the event box
-			height:      number        // The optional height for the event box
-			noDetails:   bool          // If the time event should not have a display
-			callback:    Function      // The optional callback to run on event selection. The callback Cannot be an arrow function if calling any API methods within the callback
+			width:       number         // The optional width for the event box
+			height:      number         // The optional height for the event box
+			noDetails:   bool           // If the time event should not have a display
+			callback:    Function       // The optional callback to run on event selection.
+			// The callback Cannot be an arrow function if calling any API methods within the callback
 		}
 	]
 }
@@ -55,13 +56,13 @@ let data = {
 
 ### Methods & Properties
 
-These methods can only be accessed from within a callback function using the this keyword
+These methods can only be accessed from within a callback function using the this keyword.
 
 ### .navigateTime(direction)
 
-Navigate the time table in a direction or by a specified amount
+Navigate the time table in a direction or by a specified amount.
  - direction : 'left', 'right', or a positive or negative amount
 
 ## License
 
-[MIT](https://github.com/AdventCoding/???/blob/master/LICENSE)
+[MIT](https://github.com/AdventCoding/Timespace/blob/master/LICENSE)
