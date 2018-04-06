@@ -1,4 +1,4 @@
-# Title
+# jQuery Timespace
 
 The jQuery Timespace plugin is a way to handle the display of event data in a horizontal table that can be dragged left and right. Each event in the time table can be clicked on to display more details about the event.
 
@@ -29,27 +29,29 @@ $('#timeContainer').timespace(options, callback);
 | markerWidth | The width of each time marker | 100 |
 | data | The data to use for the Timespace instance. See below for more info | null |
 
->The data argument: {
+```js
+let data = {
 	headings: [
 		{
-			start: number (The start time for the heading)
-			end:   number (The end time for the heading / Optional only for the last heading)
-			title: string (The text for the heading)
+			start: number // The start time for the heading
+			end:   number // The end time for the heading / Optional only for the last heading
+			title: string // The text for the heading
 		}
 	],
 	events: [
 		{
-			start:       number        The start time for the event
-			end:         number        The optional end time for the event
-			title:       string        The text for the event title
-			description: string|jQuery The optional text or jQuery Object for the event description
-			width:       number        The optional width for the event box
-			height:      number        The optional height for the event box
-			noDetails:   bool          If the time event should not have a display
-			callback:    Function      The optional callback to run on event selection. The callback Cannot be an arrow function if calling any API methods within the callback
+			start:       number        // The start time for the event
+			end:         number        // The optional end time for the event
+			title:       string        // The text for the event title
+			description: string||jQuery // The optional text or jQuery Object for the event description
+			width:       number        // The optional width for the event box
+			height:      number        // The optional height for the event box
+			noDetails:   bool          // If the time event should not have a display
+			callback:    Function      // The optional callback to run on event selection. The callback Cannot be an arrow function if calling any API methods within the callback
 		}
 	]
 }
+```
 
 ### Methods & Properties
 
