@@ -66,7 +66,7 @@
 	* @property {number} markerAmount The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement)
 	* @property {number} markerIncrement The amount of time between each marker
 	* @property {number} markerWidth The width of each time marker
-	* @property {Data} data The data to use for the Timespace instance
+	* @property {Data} data The data to use for the Timespace instance, or a URL for loading the data with jQuery.get()
 	*/
 	const defaults = {
 		maxWidth: 1000,
@@ -91,6 +91,7 @@
 		NULL: { code: '', msg: '' },
 		OPTS : { code: '001', msg: 'Invalid options argument supplied to the jQuery Timespace Plugin.' },
 		CALLBACK: { code: '002', msg: 'Invalid callback function supplied to the jQuery Timespace Plugin.' },
+		DATA_ERR: { code: '003', msg: 'Failure to load the Timespace data URL.' },
 		INV_INSTANCE: { code: '002', msg: 'The Timespace Plugin instance is invalid.' },
 		INV_EVENT_CB: { code: '010', msg: 'Invalid callback supplied for event in data argument.' },
 		INV_HEADING_START: { code: '011', msg: 'A heading\'s start time is less than the Timespace start time.' },
@@ -106,13 +107,24 @@
 	 */
 	const errHandler = (err, name, target) => {
 		
+		target = (!target) ? $('body') : target;
+		
 		const e = (errors.hasOwnProperty(name)) ? errors[name] : errors.NULL,
 			msg = 'An error has occurred. ' + e.code + ': ' + e.msg;
+		
+		let errElem = $(`<p class="jqTimespaceError">${msg}</p>`),
+			errExists = (target) ? (target.find('.jqTimespaceError').length > 0) : false;
 		
 		if (debug) {
 			throw err;
 		} else {
-			if (target) { target.empty().append($(`<p class="jqTimespaceError">${msg}</p>`)); }
+			
+			if (errExists) {
+				target.find('.jqTimespaceError').text(msg);
+			} else {
+				target.prepend(errElem);
+			}
+			
 		}
 		
 	};
@@ -125,6 +137,7 @@
 	 * jQuery Timespace Plugin Method
 	 * @param {Defaults} options The Plugin options
      * @param {Function} callback A callback function to execute on completion
+		If using URL for plugin data and it fails to load, the callback will receive the jqxhr object.
 	 * @return {Object} The jQuery object used to call this method
 	 */
 	$.fn.timespace = function (options, callback) {
@@ -151,9 +164,20 @@
 		// Create the instance
 		$.data(this, 'Timespace', Object.create(Timespace));
 		
-		// Store and load the instance, and run the callback
-		inst.push($.data(this, 'Timespace').load(this, options));
-		if (callback) { callback.call(inst[inst.length - 1]['API']); }
+		if (typeof options.data === 'string') {
+			
+			// Use Async loader for URL data
+			inst.push($.data(this, 'Timespace').loadAsync(
+				this, options, callback || $.noop)
+			);
+			
+		} else {
+			
+			// Store and load the instance, and run the callback
+			inst.push($.data(this, 'Timespace').load(this, options));
+			if (callback) { callback.call(inst[inst.length - 1]['API']); }
+			
+		}
 		
 		return this;
 		
@@ -199,6 +223,33 @@
 		timeTableBody: '<tbody><tr></tr></tbody>',
 		timeMarkers: null,
 		timeEvents: null,
+		
+		/**
+		 * The main method to load the Plugin with async data
+		 * @param {Object} target The jQuery Object that the plugin was called on
+		 * @param {Object} options The user-defined options
+		 * @param {Function} callback The callback to run when loaded
+		 * @return {Object} The Plugin instance
+		 */
+		loadAsync: function (target, options, callback) {
+			
+			$.get(options.data, (data) => {
+				
+				options.data = data;
+				this.load(target, options);
+				callback.call(this.API);
+				
+			}).fail((err) => {
+				
+				errHandler(new Error(err.status + ': ' + err.statusText + '. '
+					+ errors.DATA_ERR.msg), 'DATA_ERR');
+				callback.call(this.API, err);
+				
+			});
+			
+			return this;
+			
+		},
 		
 		/**
 		 * The main method to load the Plugin
@@ -319,10 +370,10 @@
 		 */
 		getTimeHeadings: function () {
 			
-			const opts = this.options,
-				dummy = $('<th class="jqTimespaceDummySpan" colspan="0"></th>');
+			const opts = this.options;
 			
-			let headings = $(),
+			let dummy = '<th class="jqTimespaceDummySpan" colspan="1"></th>',
+				headings = $(),
 				curSpan = 0,
 				totalSpan = 0;
 			
@@ -339,7 +390,9 @@
 						
 						curSpan = utility.getTimeSpan(v.start, opts.startTime, opts.markerIncrement);
 						totalSpan += curSpan;
-						headings = dummy.attr('colspan', curSpan);
+						headings = headings.add(
+							$(dummy).attr('colspan', curSpan)
+						);
 						
 					}
 					
@@ -349,30 +402,33 @@
 						curSpan = utility.getTimeSpan(v.start, a[i - 1]['end'], opts.markerIncrement);
 						totalSpan += curSpan;
 						headings = headings.add(
-							dummy.attr('colspan', curSpan)
+							$(dummy).attr('colspan', curSpan)
 						);
 						
 					}
 					
 					// Add current heading
 					curSpan = utility.getTimeSpan(v.start, v.end, opts.markerIncrement) || 0;
-					headings = headings.add($(`<th colspan="${curSpan}">${v.title}</th>`));
+					totalSpan += curSpan;
+					headings = headings.add(
+						$(`<th colspan="${curSpan}">${v.title}</th>`)
+					);
 					
 					// Check ending and create th span if needed
 					if (i === a.length - 1) {
 						
-						if (utility.compareTime(v.end, opts.endTime, opts.markerIncrement) === -1) {
+						if (utility.compareTime(opts.endTime, v.end, opts.markerIncrement) >= 0) {
 							
 							curSpan = utility.getTimeSpan(v.end, opts.endTime, opts.markerIncrement);
 							totalSpan += curSpan;
 							
-							// Make sure last span covers full table length
+							// Make sure last span covers full end length
 							if (totalSpan < opts.markerAmount) {
-								curSpan = opts.markerAmount - totalSpan;
+								curSpan += opts.markerAmount - totalSpan;
 							}
 							
 							headings = headings.add(
-								dummy.attr('colspan', curSpan)
+								$(dummy).attr('colspan', curSpan)
 							);
 							
 						} else if (totalSpan < opts.markerAmount) {
@@ -383,8 +439,6 @@
 						}
 						
 					}
-					
-					totalSpan += curSpan;
 					
 				});
 			}

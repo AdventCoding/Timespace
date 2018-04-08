@@ -13,6 +13,8 @@ We can call the Timespace plugin on an empty container and send in some data. Se
 ```js
 $('#timeContainer').timespace(options, callback);
 ```
+ - options : The options object
+ - callback : A callback function to execute on completion. If using a URL for the data option and it fails to load, the callback will receive the jqxhr object.
 
 ### Options
 
@@ -32,7 +34,7 @@ $('#timeContainer').timespace(options, callback);
 | markerAmount | The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement) | 0 |
 | markerIncrement | The amount of time between each marker | 1 |
 | markerWidth | The width of each time marker | 100 |
-| data | The data to use for the Timespace instance (See below for more info) | null |
+| data | The data to use for the Timespace instance (See below for more info), or a URL for loading the data with jQuery.get() | null |
 
 ```js
 let data = {
