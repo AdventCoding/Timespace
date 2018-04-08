@@ -22,12 +22,17 @@ $('#timeContainer').timespace(options, callback);
 | navigateAmount | The amount of pixels to move the Timespace on navigation (0 to disable) | 200 |
 | selectedEvent | The index number of the event to start on (0 for first event, -1 to disable) | 0 |
 | shiftOnEventSelect | If the time table should shift when an event is selected | true |
+| customEventDisplay | The jQuery Object of the element to use for the event display box | null |
+| timeType | Use 'hour' or 'date' for the type of time being used | 'hour' |
+| use12HourTime | If using 12-Hour time (e.g. '2:00 PM' instead of '14:00') | true |
+| useTimeSuffix | If a suffix should be added to the displayed time (e.g. '12 AM' or '300 AD') - No time suffix is used if timeType is 'hour' and use12HourTime is false | true |
+| timeSuffixFunction | A function that receives the lowercase suffix string and returns a formatted string | s => ' ' + s[0].toUpperCase() + s[1].toUpperCase() |
 | startTime | The starting time number | 0 |
 | endTime | The ending time number | 24 |
 | markerAmount | The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement) | 0 |
 | markerIncrement | The amount of time between each marker | 1 |
 | markerWidth | The width of each time marker | 100 |
-| data | The data to use for the Timespace instance. See below for more info | null |
+| data | The data to use for the Timespace instance (See below for more info) | null |
 
 ```js
 let data = {
@@ -56,12 +61,34 @@ let data = {
 
 ### Methods & Properties
 
-These methods can only be accessed from within a callback function using the this keyword.
+These methods and properties can only be accessed from within a callback function using the this keyword.
 
-### .navigateTime(direction)
+### .shiftOnEventSelect
+
+To set the shiftOnEventSelect option inside a callback function:
+```js
+this.shiftOnEventSelect = true;
+```
+
+### .shiftOnEventSelect
+
+To set the navigateAmount option inside a callback function:
+```js
+this.navigateAmount = true;
+```
+
+### .container
+
+To get the jQuery container object of the Timespace instance inside a callback function:
+```js
+let myContainer = this.container;
+```
+
+### .navigateTime(direction, duration)
 
 Navigate the time table in a direction or by a specified amount.
  - direction : 'left', 'right', or a positive or negative amount
+ - duration : The amount of seconds for the time table to animate its position
 
 ## License
 

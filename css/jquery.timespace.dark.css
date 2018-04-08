@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css?family=Nanum+Gothic');
+
+/* Time Table Transition */
+.jqTimespaceAnimated {
+	transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* Error Display */
+.jqTimespaceError {
+	padding: 1rem;
+	text-align: center;
+	color: #ff1f1f;
+	background: #282c34;
+}
+
+/* Main and Table Containers */
+.jqTimepsaceContainer, .jqTimepsaceContainer .jqTimespaceTableContainer {
+	position: relative;
+	box-sizing: border-box;
+	overflow: hidden;
+	margin: 0 auto;
+	padding: 0;
+	color: #ffffff;
+	font-family: 'Nanum Gothic', sans-serif;
+}
+	.jqTimepsaceContainer .jqTimespaceTableContainer {
+		box-shadow: 0 6px 5px -5px #000000;
+		border: 1px solid #5f5f5f;
+		background: #282c34 url('../images/timespace.line.dark.png') bottom 0 left 0 repeat-x;
+		-moz-user-select: none;
+		user-select: none;
+	}
+
+/* Navigation and Line Guide */
+.jqTimepsaceContainer .jqTimespaceLeft,
+	.jqTimepsaceContainer .jqTimespaceRight {
+		z-index: 100;
+		position: absolute;
+		bottom: 30%;
+		margin: 0;
+		border: 1px solid #4c525f;
+		padding: 0.1rem 0.5rem;
+		color: #a0a9bd;
+		font-size: 1.6rem;
+		line-height: 2rem;
+		text-align: center;
+		cursor: pointer;
+		background: #323944;
+		opacity: 0.7;
+		transition: background 0.4s ease-in;
+	}
+	.jqTimepsaceContainer .jqTimespaceLeft {
+		left: 0;
+	}
+	.jqTimepsaceContainer .jqTimespaceRight {
+		right: 0;
+	}
+	.jqTimepsaceContainer .jqTimespaceLeft:hover,
+		.jqTimepsaceContainer .jqTimespaceRight:hover {
+			background: #555a64;
+			opacity: 1;
+		}
+	.jqTimepsaceContainer .jqTimespaceLine {
+		z-index: 100;
+		box-sizing: border-box;
+		position: absolute;
+		top: 0;
+		left: 50%;
+		margin: 0;
+		padding: 0;
+		width: 3px;
+		height: 100%;
+		cursor: move;
+		background: linear-gradient(to top, #ffffff 0%,#cacaca 20%,#474747 100%);
+		opacity: 0.1;
+	}
+	
+/* Timeline Table */
+.jqTimepsaceContainer table {
+	position: relative;
+	table-layout: fixed;
+	left: 0;
+	margin: 0;
+	box-sizing: border-box;
+	border-collapse: collapse;
+	padding: 0;
+	line-break: strict;
+	cursor: move;
+}
+	.jqTimepsaceContainer tr {
+		position: relative;
+		height: 100%;
+	}
+	.jqTimepsaceContainer thead th {
+		box-sizing: border-box;
+		margin: 0;
+		border-bottom: 1px solid #575757;
+		padding: 0.8rem 0 0.2rem 0;
+	}
+	.jqTimepsaceContainer thead th:not(:first-child) {
+		border-left: 1px solid #b4b4b4;
+	}
+	.jqTimepsaceContainer tbody td {
+		border-right: 1px dashed #575757;
+		height: 100%;
+		min-height: 6.25rem;
+		text-align: center;
+		vertical-align: top;
+	}
+	.jqTimepsaceContainer thead th.jqTimespaceDummySpan {
+		border-left: 1px solid #6b6b6b;
+		background: #22252c;
+		opacity: 0.4;
+	}
+	
+/* Event Box */
+.jqTimepsaceContainer .jqTimespaceEvent {
+	box-sizing: border-box;
+	position: relative;
+	margin: 1rem 0 2rem 0;
+	border-left: 1px solid #474747;
+	padding-top: 1.3rem;
+	min-width: 100%;
+	height: 100%;
+}
+	.jqTimepsaceContainer .jqTimespaceEvent:hover {
+		border-left: 1px dashed #8a8a8a;
+	}
+	.jqTimepsaceContainer .jqTimespaceEvent p {
+		z-index: 99;
+		position: relative;
+		box-sizing: border-box;
+		box-shadow: 3px 6px 5px -5px #000000;
+		overflow: hidden;
+		margin: 0 0 0.7rem;
+		border: 1px solid #818181;
+		border-radius: 0.2rem 0.6rem 0.6rem 0.2rem;
+		padding: 0.5rem 0.3rem;
+		min-width: 100%;
+		cursor: pointer;
+		background: #282c34;
+		transition: all 0.3s ease-in;
+	}
+	.jqTimepsaceContainer .jqTimespaceEvent p:hover,
+		.jqTimepsaceContainer .jqTimespaceEvent .jqTimespaceEventSelected {
+			box-shadow: 0 6px 5px -5px #000000;
+			background: #494e58;
+			transform: rotateY(10deg);
+    		transform-origin: 0 50%;
+		}
+	.jqTimepsaceContainer .jqTimespaceNoDisplay:hover {
+		border-left: 1px solid #474747;
+	}
+	.jqTimepsaceContainer .jqTimespaceNoDisplay p {
+		box-shadow: none;
+		cursor: move;
+		background: #32373f;
+		opacity: 0.7;
+	}
+	.jqTimepsaceContainer .jqTimespaceNoDisplay p:hover {
+		box-shadow: none;
+		background: #32373f;
+		transform: none;
+	}
+	
+/* Event Display */
+.jqTimespaceDisplay {
+	box-sizing: border-box;
+	box-shadow: 0 6px 5px -5px #000000;
+	margin: 1rem auto;
+	border: 1px solid #5f5f5f;
+	padding: 1.5rem;
+	background: #282c34;
+}
+	.jqTimespaceDisplay h1 {
+		margin: 0;
+		padding: 0.5rem;
+		text-align: left;
+	}
+	.jqTimespaceDisplay .jqTimespaceTimeframe {
+		display: inline-block;
+		margin: 0.2rem 0 0.2rem 0.5rem;
+		padding: 0 0.4rem;
+		border-left: 1px solid #cccccc;
+		border-right: 1px solid #cccccc;
+		color: #bd4c3d;
+	}
+	.jqTimespaceDisplay section {
+		margin: 0;
+		padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+		max-width: 50%;
+	}

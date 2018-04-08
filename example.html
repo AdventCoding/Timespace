@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>jQuery Timespace Example</title>
+	<link href="css/jquery.timespace.dark.css" rel="stylesheet">
+	<style>
+		body {
+			background:#262727;
+		}
+		a {
+			color: #8baac0;
+		}
+		h1 {
+			text-align: center;
+			color: white;
+		}
+		#timeline, #timelineClock {
+			box-sizing: border-box;
+			padding: 10px;
+			width: 100%;
+		}
+	</style>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="jquery.timespace.js"></script>
+</head>
+<body>
+	<h1>24-Hour Timeline</h1>
+	<div id="timelineClock"></div>
+	<h1>Event Timeline</h1>
+	<div id="timeline"></div>
+<script>
+	$(function () {
+		
+		$('#timelineClock').timespace({
+			
+			// Set the time suffix function for displaying as '12 A.M.'
+			timeSuffixFunction: s => ' ' + s[0].toUpperCase() + '.' + s[1].toUpperCase() + '.',
+			selectedEvent: -1,
+			data: {
+				headings: [
+					{start: 0, end: 6, title: 'Night'},
+					{start: 6, end: 12, title: 'Morning'},
+					{start: 12, end: 18, title: 'Afternoon'},
+					{start: 18, title: 'Evening'},
+				],
+				events: [
+					{start: 6.50, title: 'Breakfast', description: 'Eat a healthy breakfast.'},
+					{start: 8, end: 10, title: 'Walk', description: 'Go for a walk.'},
+					{start: 14, title: 'Lunch', description: 'Eat a healthy lunch.'},
+					{start: 14.75, title: 'Meeting', description: 'Meeting with Co-workers.'},
+				]
+			},
+			
+		}, function () {
+			
+			// Edit the navigation amount
+			this.navigateAmount = 500;
+			
+		});
+		
+		$('#timeline').timespace({
+			
+			timeType: 'date',
+			useTimeSuffix: false,
+			startTime: 1400,
+			endTime: 2050,
+			markerIncrement: 50,
+			data: {
+				headings: [
+					{start: 1400, end: 1700, title: 'Age of Discovery'},
+					{start: 1750, end: 1917, title: 'Age of Revolution'},
+					{start: 1971, title: 'Information Age'},
+				],
+				events: [
+					{start: 1440, title: 'Gutenberg\'s Printing Press', width: 200},
+					{start: 1517, end: 1648, title: 'The Reformation',
+						description: $('<p>The Reformation was a turning point in the history of the world. '
+							+ 'Martin Luther was a key player in this event as he stood up against Papal tyranny '
+							+ 'and church apostasy.</p><p>Many other reformers followed in the steps of Luther '
+							+ 'and followed the convictions of their hearts, even unto death.</p>')},
+					{start: 1775, end: 1783, title: 'American Revolution', description: 'Description:', callback: function () {
+						
+						this.container.find('.jqTimespaceDisplay section').append(
+							'<p>This description was brought to you by the callback function. For information on the American Revolution, '
+							+ '<br><a target="_blank" href="https://en.wikipedia.org/wiki/American_Revolution">Visit the Wikipedia page.</a></p>'
+						);
+						
+					}},
+					{start: 1914, end: 1918, title: 'World War I', noDetails: true},
+					{start: 1929, end: 1939, title: 'Great Depression',
+						description: 'A period of global economic downturn. Many experienced unemployment and the basest poverty.'
+					},
+				]
+			},
+			
+		});
+		
+	});
+</script>
+</body>
+</html>
