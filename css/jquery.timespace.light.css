@@ -192,5 +192,10 @@
 	.jqTimespaceDisplay section {
 		margin: 0;
 		padding: 0.8rem 0.5rem 0.5rem 0.5rem;
-		max-width: 50%;
+		max-width: 70%;
+	}
+	@media (max-width: 30em) {
+		.jqTimespaceDisplay section {
+			max-width: 100%
+		}
 	}

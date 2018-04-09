@@ -79,7 +79,7 @@
 		useTimeSuffix: true,
 		timeSuffixFunction: s => ' ' + s[0].toUpperCase() + s[1].toUpperCase(),
 		startTime: 0,
-		endTime: 23,
+		endTime: 24,
 		markerAmount: 0,
 		markerIncrement: 1,
 		markerWidth: 100,
@@ -95,8 +95,7 @@
 		INV_INSTANCE: { code: '002', msg: 'The Timespace Plugin instance is invalid.' },
 		INV_EVENT_CB: { code: '010', msg: 'Invalid callback supplied for event in data argument.' },
 		INV_HEADING_START: { code: '011', msg: 'A heading\'s start time is less than the Timespace start time.' },
-		INV_HEADING_END: { code: '012', msg: 'A heading\'s end time is more than the Timespace end time.' },
-		INV_EVENT_END: { code: '013', msg: 'An event\'s end time is more than the Timspace end time.' },
+		INV_HEADING_END: { code: '012', msg: 'A heading\'s end time is greater than the Timespace end time.' },
 	};
 	
 	/**
@@ -405,6 +404,7 @@
 						
 					}
 					
+					// Check heading end time
 					if (v.end === null || v.end === undefined) {
 						v.end = opts.endTime;
 					} else if (v.end > opts.endTime) {
@@ -421,20 +421,15 @@
 					);
 					
 					// Create dummy span to cover ending if needed
-					// Subtract 1 to prevent spanning through ending time marker
 					if (i === a.length - 1) {
 						
 						if (utility.compareTime(v.end, opts.endTime, opts.markerIncrement) === -1) {
 							
 							// Create ending dummy span
-							curSpan = utility.getTimeSpan(v.end, opts.endTime, opts.markerIncrement) - 1;
+							curSpan = utility.getTimeSpan(v.end, opts.endTime, opts.markerIncrement);
 							headings = headings.add(
 								$(dummy).attr('colspan', curSpan)
 							);
-							
-						} else {
-							
-							headings.last().attr('colspan', curSpan - 1);
 							
 						}
 						
@@ -586,12 +581,6 @@
 						eventElem.data('eventCallback', $.noop);
 						
 					}
-					if (v.end > opts.endTime) {
-						
-						errHandler(new Error(errors.INV_EVENT_END.msg), 'INV_EVENT_END', this.error);
-						v.end = opts.endTime;
-						
-					}
 					
 					let timeMarker = $(),
 						pos = 0,
@@ -722,8 +711,6 @@
 			this.displayTitle = $(this.displayTitle).appendTo(this.display);
 			this.displayTime = $(this.displayTime).appendTo(this.display);
 			this.displayBody = $(this.displayBody).appendTo(this.display);
-			
-			if (opts.maxWidth <= 500) { this.displayBody.css('maxWidth', '100%'); }
 			
 			return this;
 			
