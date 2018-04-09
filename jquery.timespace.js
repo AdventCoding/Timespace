@@ -375,7 +375,8 @@
 			let dummy = '<th class="jqTimespaceDummySpan" colspan="1"></th>',
 				headings = $(),
 				curSpan = 0,
-				totalSpan = 0;
+				// Adjust to cover last th span
+				endTime = opts.endTime + opts.markerIncrement;
 			
 			if (this.data.headings) {
 				this.data.headings.forEach((v, i, a) => {
@@ -385,58 +386,44 @@
 						errHandler(new Error(errors.INV_HEADING_START.msg), 'INV_HEADING_START', this.error);
 					}
 					
-					// Create starting th span before first heading if needed
+					// Create dummy span before first heading if needed
 					if (i === 0 && utility.compareTime(v.start, opts.startTime, opts.markerIncrement) === 1) {
 						
 						curSpan = utility.getTimeSpan(v.start, opts.startTime, opts.markerIncrement);
-						totalSpan += curSpan;
 						headings = headings.add(
 							$(dummy).attr('colspan', curSpan)
 						);
 						
 					}
 					
-					// Create span to cover time in between headings if needed
+					// Create dummy span to cover time in between headings if needed
 					if (i > 0 && utility.compareTime(v.start, a[i - 1]['end'], opts.markerIncrement) === 1) {
 						
 						curSpan = utility.getTimeSpan(v.start, a[i - 1]['end'], opts.markerIncrement);
-						totalSpan += curSpan;
 						headings = headings.add(
 							$(dummy).attr('colspan', curSpan)
 						);
 						
+					}
+					
+					if (v.end === null || v.end === undefined) {
+						v.end = endTime;
 					}
 					
 					// Add current heading
 					curSpan = utility.getTimeSpan(v.start, v.end, opts.markerIncrement) || 0;
-					totalSpan += curSpan;
 					headings = headings.add(
 						$(`<th colspan="${curSpan}">${v.title}</th>`)
 					);
 					
-					// Check ending and create th span if needed
-					if (i === a.length - 1) {
+					// Create dummy span to cover ending if needed
+					if (i === a.length - 1
+						&& utility.compareTime(v.end, endTime, opts.markerIncrement, 'ceil') === -1) {
 						
-						if (utility.compareTime(opts.endTime, v.end, opts.markerIncrement) >= 0) {
-							
-							curSpan = utility.getTimeSpan(v.end, opts.endTime, opts.markerIncrement);
-							totalSpan += curSpan;
-							
-							// Make sure last span covers full end length
-							if (totalSpan < opts.markerAmount) {
-								curSpan += opts.markerAmount - totalSpan;
-							}
-							
-							headings = headings.add(
-								$(dummy).attr('colspan', curSpan)
-							);
-							
-						} else if (totalSpan < opts.markerAmount) {
-							
-							// Last heading needs to cover full table length
-							headings.last().attr('colspan', opts.markerAmount - totalSpan);
-							
-						}
+						curSpan = utility.getTimeSpan(v.end, endTime, opts.markerIncrement);
+						headings = headings.add(
+							$(dummy).attr('colspan', curSpan)
+						);
 						
 					}
 					
@@ -1063,12 +1050,13 @@
 		 * @param {number} time1 The first time to compare
 		 * @param {number} time2 The second time to compare
 		 * @param {number} increment The time marker increment
+		 * @param {string} fn The Math function to use for rounding
 		 * @return {number|NaN} -1 if time1 is less than time2, 0 if equal, and 1 if greater than
 		 */
-		compareTime: function (time1, time2, increment) {
+		compareTime: function (time1, time2, increment, fn) {
 			
-			time1 = this.roundToIncrement('floor', increment, time1);
-			time2 = this.roundToIncrement('ceil', increment, time2);
+			time1 = this.roundToIncrement(fn || 'floor', increment, time1);
+			time2 = this.roundToIncrement(fn || 'ceil', increment, time2);
 			
 			if (time1 < time2) { return -1; }
 			if (time1 > time2) { return 1; }
