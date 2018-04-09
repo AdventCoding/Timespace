@@ -108,9 +108,11 @@
 		vertical-align: top;
 	}
 	.jqTimepsaceContainer thead th.jqTimespaceDummySpan {
-		border-left: 1px solid #6b6b6b;
 		background: #ececec;
 		opacity: 0.4;
+	}
+	.jqTimepsaceContainer thead th.jqTimespaceDummySpan:not(:first-child) {
+		border-left: 1px solid #6b6b6b;
 	}
 	
 /* Event Box */
