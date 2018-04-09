@@ -47,7 +47,7 @@
 		cursor: pointer;
 		background: #323944;
 		opacity: 0.7;
-		transition: background 0.4s ease-in;
+		transition: background 0.4s ease-in, opacity 0.4s ease-in;
 	}
 	.jqTimepsaceContainer .jqTimespaceLeft {
 		left: 0;
