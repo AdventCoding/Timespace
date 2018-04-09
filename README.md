@@ -40,6 +40,8 @@ $('#timeContainer').timespace(options, callback);
 let data = {
 	headings: [
 		{
+			// Important: The start and end times for the headings are rounded to the increment
+			//   e.g. If my increment is 10, a start time of 35 will round to 40, and 34 will round to 30.
 			start: number // The start time for the heading
 			end:   number // The end time for the heading / Optional only for the last heading
 			title: string // The text for the heading

@@ -421,17 +421,14 @@
 					);
 					
 					// Create dummy span to cover ending if needed
-					if (i === a.length - 1) {
+					if (i === a.length - 1
+						&& utility.compareTime(v.end, opts.endTime, opts.markerIncrement) === -1) {
 						
-						if (utility.compareTime(v.end, opts.endTime, opts.markerIncrement) === -1) {
-							
-							// Create ending dummy span
-							curSpan = utility.getTimeSpan(v.end, opts.endTime, opts.markerIncrement);
-							headings = headings.add(
-								$(dummy).attr('colspan', curSpan)
-							);
-							
-						}
+						// Create ending dummy span
+						curSpan = utility.getTimeSpan(v.end, opts.endTime, opts.markerIncrement);
+						headings = headings.add(
+							$(dummy).attr('colspan', curSpan)
+						);
 						
 					}
 					
@@ -1067,8 +1064,8 @@
 		 */
 		getTimeSpan: function (start, end, increment) {
 			
-			start = this.roundToIncrement('floor', increment, start);
-			end = this.roundToIncrement('ceil', increment, end);
+			start = this.roundToIncrement('round', increment, start);
+			end = this.roundToIncrement('round', increment, end);
 			
 			return Math.abs(Math.floor((end - start) / increment));
 			
@@ -1079,13 +1076,12 @@
 		 * @param {number} time1 The first time to compare
 		 * @param {number} time2 The second time to compare
 		 * @param {number} increment The time marker increment
-		 * @param {string} fn The Math function to use for rounding
 		 * @return {number|NaN} -1 if time1 is less than time2, 0 if equal, and 1 if greater than
 		 */
-		compareTime: function (time1, time2, increment, fn) {
+		compareTime: function (time1, time2, increment) {
 			
-			time1 = this.roundToIncrement(fn || 'floor', increment, time1);
-			time2 = this.roundToIncrement(fn || 'ceil', increment, time2);
+			time1 = this.roundToIncrement('round', increment, time1);
+			time2 = this.roundToIncrement('round', increment, time2);
 			
 			if (time1 < time2) { return -1; }
 			if (time1 > time2) { return 1; }
