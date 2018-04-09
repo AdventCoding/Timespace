@@ -30,7 +30,6 @@
 	 * @property {string} title The text for the event title
 	 * @property {string?|jQuery} description The optional text or jQuery Object for the event description
 	 * @property {number?} width The optional width for the event box
-	 * @property {number?} height The optional height for the event box
 	 * @property {bool} noDetails If the time event should not have a display
 	 * @property {Function?} callback The optional callback to run on event selection
 		The callback Cannot be an arrow function if calling any API methods within the callback
@@ -65,12 +64,13 @@
 	* @property {number} endTime The ending time number
 	* @property {number} markerAmount The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement)
 	* @property {number} markerIncrement The amount of time between each marker
-	* @property {number} markerWidth The width of each time marker
+	* @property {number} markerWidth The width of each time marker (0 to calculate from maxWidth and markerAmount)
 	* @property {Data} data The data to use for the Timespace instance, or a URL for loading the data with jQuery.get()
 	*/
 	const defaults = {
 		maxWidth: 1000,
 		navigateAmount: 200,
+		dragMultiplier: 1,
 		selectedEvent: 0,
 		shiftOnEventSelect: true,
 		customEventDisplay: null,
@@ -95,6 +95,8 @@
 		INV_INSTANCE: { code: '002', msg: 'The Timespace Plugin instance is invalid.' },
 		INV_EVENT_CB: { code: '010', msg: 'Invalid callback supplied for event in data argument.' },
 		INV_HEADING_START: { code: '011', msg: 'A heading\'s start time is less than the Timespace start time.' },
+		INV_HEADING_END: { code: '012', msg: 'A heading\'s end time is more than the Timespace end time.' },
+		INV_EVENT_END: { code: '013', msg: 'An event\'s end time is more than the Timspace end time.' },
 	};
 	
 	/**
@@ -311,8 +313,7 @@
 			const opts = this.options;
 			
 			if (opts.markerAmount === 0) {
-				// Add 1 to include end time marker
-				opts.markerAmount = (Math.floor(this.totalTime / opts.markerIncrement)) + 1 || 0;
+				opts.markerAmount = (Math.floor(this.totalTime / opts.markerIncrement)) || 0;
 			}
 			if (opts.markerWidth === 0) {
 				opts.markerWidth = (Math.floor(opts.maxWidth / opts.markerAmount)) || 100;
@@ -374,9 +375,7 @@
 			
 			let dummy = '<th class="jqTimespaceDummySpan" colspan="1"></th>',
 				headings = $(),
-				curSpan = 0,
-				// Adjust to cover last th span
-				endTime = opts.endTime + opts.markerIncrement;
+				curSpan = 0;
 			
 			if (this.data.headings) {
 				this.data.headings.forEach((v, i, a) => {
@@ -407,7 +406,12 @@
 					}
 					
 					if (v.end === null || v.end === undefined) {
-						v.end = endTime;
+						v.end = opts.endTime;
+					} else if (v.end > opts.endTime) {
+						
+						errHandler(new Error(errors.INV_HEADING_END.msg), 'INV_HEADING_END', this.error);
+						v.end = opts.endTime;
+						
 					}
 					
 					// Add current heading
@@ -417,13 +421,22 @@
 					);
 					
 					// Create dummy span to cover ending if needed
-					if (i === a.length - 1
-						&& utility.compareTime(v.end, endTime, opts.markerIncrement, 'ceil') === -1) {
+					// Subtract 1 to prevent spanning through ending time marker
+					if (i === a.length - 1) {
 						
-						curSpan = utility.getTimeSpan(v.end, endTime, opts.markerIncrement);
-						headings = headings.add(
-							$(dummy).attr('colspan', curSpan)
-						);
+						if (utility.compareTime(v.end, opts.endTime, opts.markerIncrement) === -1) {
+							
+							// Create ending dummy span
+							curSpan = utility.getTimeSpan(v.end, opts.endTime, opts.markerIncrement) - 1;
+							headings = headings.add(
+								$(dummy).attr('colspan', curSpan)
+							);
+							
+						} else {
+							
+							headings.last().attr('colspan', curSpan - 1);
+							
+						}
 						
 					}
 					
@@ -543,10 +556,13 @@
 			
 			let opts = this.options,
 				markerTags = this.markerTags,
-				events = $();
+				events = $(),
+				rows = [],
+				marginOrigin = 0,
+				marginTop = 0;
 			
 			if (this.data.events) {
-				this.data.events.forEach((v) => {
+				this.data.events.forEach((v, i) => {
 					
 					const start = parseFloat(v.start) || null,
 						end = parseFloat(v.end) || null,
@@ -556,14 +572,13 @@
 							: (v.description !== undefined)
 								? $(`<p>${utility.sanitize(v.description)}</p>`) : '',
 						width = parseInt(v.width),
-						height = parseInt(v.height),
 						noDetails = !!v.noDetails,
 						cb = (v.callback === undefined)
 							? $.noop : v.callback.bind(this.API),
 						rounded = utility.roundToIncrement('floor', opts.markerIncrement, start),
 						index = markerTags.indexOf(rounded),
 						event = $('<div class="jqTimespaceEvent"></div>'),
-						eventElem = $(`<p>${v.title}</p>`).appendTo(event);
+						eventElem = $(`<p><span>${v.title}</span></p>`).appendTo(event);
 					
 					if (!$.isFunction(cb)) {
 						
@@ -571,11 +586,17 @@
 						eventElem.data('eventCallback', $.noop);
 						
 					}
+					if (v.end > opts.endTime) {
+						
+						errHandler(new Error(errors.INV_EVENT_END.msg), 'INV_EVENT_END', this.error);
+						v.end = opts.endTime;
+						
+					}
 					
-					let prev = $(),
-						timeMarker = $(),
+					let timeMarker = $(),
 						pos = 0,
-						actualWidth = 0,
+						realWidth = 0,
+						span = 0,
 						hasSharedSpace = false;
 					
 					if (index >= 0) {
@@ -585,70 +606,92 @@
 						// Find the position based on percentage of starting point to the increment amount
 						pos = (((start - markerTags[index]) / opts.markerIncrement) * opts.markerWidth);
 						
-						actualWidth = (() => {
-							
-							// - 4 to provide a bit of space in between events that are next to each other
-							const endWidth = (end)
-								? ((end - start) / opts.markerIncrement) * opts.markerWidth : 0;
-							
-							if (width && width > opts.markerWidth) {
-								return width - 4;
-							} else if (endWidth > opts.markerWidth) {
-								return endWidth - 4;
-							} else {
-								return opts.markerWidth - 4;
-							}
-							
-						})(); // Immediately invoke arrow function to return width
-						
 						// Check if jqTimespaceEvent div already exists for this time marker
 						if (timeMarker.find('.jqTimespaceEvent').length > 0) {
 							
-							// Reduce the heights and margin
-							timeMarker.find('.jqTimespaceEvent').css({
-								height: 'auto',
-								marginBottom: 0
-							});
-							event.height('auto');
+							// Reduce the margin
+							timeMarker.find('.jqTimespaceEvent').css({ marginBottom: 0 });
 							hasSharedSpace = true;
 							
 						}
 						
-						event.css({
-							left: pos + 'px',
-							width: actualWidth
-						}).appendTo(timeMarker);
+						event.css({ left: pos + 'px' }).appendTo(timeMarker);
 						
 						if (noDetails) { event.addClass('jqTimespaceNoDisplay'); }
 						
-						eventElem.css({
-							width: actualWidth,
-							height: height,
-						}).data({
-							span: event.position().left + eventElem.outerWidth(true),
-							start: this.getDisplayTime(start),
-							end: this.getDisplayTime(end),
-							title: title,
-							description: desc,
-							noDetails: noDetails,
-							eventCallback: cb,
-						});
+						realWidth = (() => {
+							
+							const curWidth = eventElem.children('span').innerWidth(),
+								endWidth = (end)
+									? ((end - start) / opts.markerIncrement) * opts.markerWidth : 0;
+							
+							if (width) {
+								return width;
+							} else if (curWidth > endWidth && curWidth > opts.markerWidth) {
+								return curWidth;
+							} else if (endWidth > opts.markerWidth) {
+								return endWidth;
+							} else {
+								return opts.markerWidth;
+							}
+							
+						})(); // Immediately invoke arrow function to return width
+						
+						event.width(realWidth);
+						eventElem.width(realWidth)
+							.data({
+								start: this.getDisplayTime(start),
+								end: this.getDisplayTime(end),
+								title: title,
+								description: desc,
+								noDetails: noDetails,
+								eventCallback: cb,
+							});
 						
 						events = events.add(eventElem);
+						span = event.position().left + eventElem.outerWidth(true);
 						
-						if (events.index(eventElem) - 1 >= 0) {
-							prev = events.eq(events.index(eventElem) - 1);
-						}
-						
-						// Check if previous event overlaps this event and not in the same td element
-						if (!hasSharedSpace
-							&& prev.length > 0
-							&& prev !== eventElem) {
+						// Cache the row widths for checking overlap
+						if (i === 0) {
+							
+							rows.push(span);
+							marginOrigin = parseInt(event.css('marginTop'));
+							marginTop = Math.floor(marginOrigin + event.innerHeight());
+							
+						} else {
+							
+							if (!hasSharedSpace) {
 								
-							if (prev.data('span') > event.position().left) {
-								
-								// Move event top to the bottom of previous event
-								eventElem.css('marginTop', prev.outerHeight(true));
+								for (let row = 0; row < rows.length; row += 1) {
+									
+									if (rows[row] <= event.position().left) {
+										
+										// Cache the new span width and switch to this row space
+										rows[row] = span;
+										
+										// If first row, the normal marginTop will be used
+										if (row > 0) {
+											event.css('marginTop', row * marginTop + marginOrigin);
+										}
+										
+										break;
+										
+									} else {
+										
+										// Push the event down to the next row space
+										event.css('marginTop', (row + 1) * marginTop + marginOrigin);
+										
+										// Check if on last cached row
+										if (row === rows.length - 1) {
+											
+											rows[row + 1] = span;
+											break;
+											
+										}
+										
+									}
+									
+								}
 								
 							}
 							
@@ -850,16 +893,16 @@
 			
 			if (!this.shiftEnabled) { return this; }
 			
+			const opts = this.options;
 			let finished = (e === false),
 				x = (finished) ? 0 : e.pageX,
-				dir = 0,
-				newPos = 0;
+				dir = 0;
 			
 			if (nav) {
 				
 				this.shiftDir = nav;
-				this.shiftPos = (nav === '<') ? this.getTablePosition() - this.options.navigateAmount
-					: this.getTablePosition() + this.options.navigateAmount;
+				this.shiftPos = (nav === '<') ? this.getTablePosition() - opts.navigateAmount
+					: this.getTablePosition() + opts.navigateAmount;
 				
 			}
 			
@@ -889,8 +932,7 @@
 				
 				// Cache new position for next mousemove event
 				dir = x - this.lastMousePos;
-				newPos = this.getTablePosition() + dir;
-				this.shiftPos = newPos;
+				this.shiftPos = this.getTablePosition() + (dir * opts.dragMultiplier);
 				this.shiftDir = (dir < 0) ? '<' : '>';
 				this.lastMousePos = x;
 				

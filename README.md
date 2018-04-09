@@ -33,7 +33,7 @@ $('#timeContainer').timespace(options, callback);
 | endTime | The ending time number | 24 |
 | markerAmount | The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement) | 0 |
 | markerIncrement | The amount of time between each marker | 1 |
-| markerWidth | The width of each time marker | 100 |
+| markerWidth | The width of each time marker (0 to calculate from maxWidth and markerAmount) | 100 |
 | data | The data to use for the Timespace instance (See below for more info), or a URL for loading the data with jQuery.get() | null |
 
 ```js
@@ -52,7 +52,6 @@ let data = {
 			title:       string         // The text for the event title
 			description: string||jQuery // The optional text or jQuery Object for the event description
 			width:       number         // The optional width for the event box
-			height:      number         // The optional height for the event box
 			noDetails:   bool           // If the time event should not have a display
 			callback:    Function       // The optional callback to run on event selection.
 			// The callback Cannot be an arrow function if calling any API methods within the callback
