@@ -160,6 +160,9 @@
 		background: #32373f;
 		transform: none;
 	}
+	.jqTimepsaceContainer .jqTimespaceNoDisplay p:hover + .jqTimespaceEventBorder {
+		border-left: 1px dashed #777777;
+	}
 	.jqTimespaceEventBorder {
 		position: absolute;
 		top: 0;
