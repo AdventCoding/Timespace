@@ -19,8 +19,8 @@
  */
 (($, global) => {
 	
-	//todo more error handling
-	const debug = false; //todo turn off debug mode
+	// When in debug mode, errHandler will throw the Error
+	const debug = false;
 	
 	/**
 	 * The Time Event Object Type
@@ -29,8 +29,9 @@
 	 * @property {number?} end The optional end time for the event
 	 * @property {string} title The text for the event title
 	 * @property {string?|jQuery} description The optional text or jQuery Object for the event description
-	 * @property {number?} width The optional width for the event box
+	 * @property {number?} width The optional width for the event <p> element
 	 * @property {bool} noDetails If the time event should not have a display
+	 * @property {string} class The optional CSS class to use for the event's <p> element
 	 * @property {Function?} callback The optional callback to run on event selection
 		The callback Cannot be an arrow function if calling any API methods within the callback
 	 */
@@ -276,7 +277,6 @@
 			this.tableContainer = $(this.tableContainer)
 				.css('maxWidth', opts.maxWidth)
 				.appendTo(this.container);
-			
 			this.navRight = $(this.navRight);
 			this.navLeft = $(this.navLeft);
 			
@@ -332,13 +332,12 @@
 				headings = this.getTimeHeadings(),
 				markers = this.getTimeMarkers();
 			
-				
 			// Table width is used to force marker width, offset is used for mousemove event
 			this.tableWidth = opts.markerAmount * opts.markerWidth || 'auto';
 			this.tableOffset = this.tableWidth - (this.container.outerWidth() - 1);
 			
-			this.timeTableLine = $(this.timeTableLine).appendTo(this.tableContainer);
 			this.timeTable = $(this.timeTable).width(this.tableWidth).appendTo(this.tableContainer);
+			this.timeTableLine = $(this.timeTableLine).appendTo(this.tableContainer);
 			this.timeTableHead = $(this.timeTableHead).appendTo(this.timeTable);
 			this.timeTableBody = $(this.timeTableBody).appendTo(this.timeTable);
 			this.timeMarkers = markers.appendTo(this.timeTableBody.children('tr'));
@@ -379,15 +378,19 @@
 			if (this.data.headings) {
 				this.data.headings.forEach((v, i, a) => {
 					
+					const start = parseFloat(v.start),
+						title = utility.sanitize(v.title);	
+					let end = (utility.isEmpty(v.end)) ? null : parseFloat(v.end);
+					
 					// Check for timeline start and heading start error
-					if (opts.startTime > v.start) {
+					if (opts.startTime > start) {
 						errHandler(new Error(errors.INV_HEADING_START.msg), 'INV_HEADING_START', this.error);
 					}
 					
 					// Create dummy span before first heading if needed
-					if (i === 0 && utility.compareTime(v.start, opts.startTime, opts.markerIncrement) === 1) {
+					if (i === 0 && utility.compareTime(start, opts.startTime, opts.markerIncrement) === 1) {
 						
-						curSpan = utility.getTimeSpan(v.start, opts.startTime, opts.markerIncrement);
+						curSpan = utility.getTimeSpan(start, opts.startTime, opts.markerIncrement);
 						headings = headings.add(
 							$(dummy).attr('colspan', curSpan)
 						);
@@ -395,9 +398,9 @@
 					}
 					
 					// Create dummy span to cover time in between headings if needed
-					if (i > 0 && utility.compareTime(v.start, a[i - 1]['end'], opts.markerIncrement) === 1) {
+					if (i > 0 && utility.compareTime(start, a[i - 1]['end'], opts.markerIncrement) === 1) {
 						
-						curSpan = utility.getTimeSpan(v.start, a[i - 1]['end'], opts.markerIncrement);
+						curSpan = utility.getTimeSpan(start, a[i - 1]['end'], opts.markerIncrement);
 						headings = headings.add(
 							$(dummy).attr('colspan', curSpan)
 						);
@@ -405,27 +408,27 @@
 					}
 					
 					// Check heading end time
-					if (v.end === null || v.end === undefined) {
-						v.end = opts.endTime;
-					} else if (v.end > opts.endTime) {
+					if (utility.isEmpty(end)) {
+						end = opts.endTime;
+					} else if (end > opts.endTime) {
 						
 						errHandler(new Error(errors.INV_HEADING_END.msg), 'INV_HEADING_END', this.error);
-						v.end = opts.endTime;
+						end = opts.endTime;
 						
 					}
 					
 					// Add current heading
-					curSpan = utility.getTimeSpan(v.start, v.end, opts.markerIncrement) || 0;
+					curSpan = utility.getTimeSpan(start, end, opts.markerIncrement) || 0;
 					headings = headings.add(
-						$(`<th colspan="${curSpan}">${v.title}</th>`)
+						$(`<th colspan="${curSpan}">${title}</th>`)
 					);
 					
 					// Create dummy span to cover ending if needed
 					if (i === a.length - 1
-						&& utility.compareTime(v.end, opts.endTime, opts.markerIncrement) === -1) {
+						&& utility.compareTime(end, opts.endTime, opts.markerIncrement) === -1) {
 						
 						// Create ending dummy span
-						curSpan = utility.getTimeSpan(v.end, opts.endTime, opts.markerIncrement);
+						curSpan = utility.getTimeSpan(end, opts.endTime, opts.markerIncrement);
 						headings = headings.add(
 							$(dummy).attr('colspan', curSpan)
 						);
@@ -470,7 +473,7 @@
 		 */
 		getDisplayTime: function (time) {
 			
-			if (time !== null) {
+			if (!utility.isEmpty(time)) {
 				
 				return this.getTime(time)
 					+ this.getMinutes(time)
@@ -492,7 +495,8 @@
 			if (this.options.timeType === 'hour') {
 				return utility.getHours(time, !this.options.use12HourTime);
 			} else if (this.options.timeType === 'date') {
-				return Math.abs(time);
+				// Correct if time is 0 AD
+				return (time === 0) ? 1 : Math.abs(time);
 			}
 			
 			return time;
@@ -560,20 +564,22 @@
 					const start = parseFloat(v.start) || null,
 						end = parseFloat(v.end) || null,
 						title = utility.sanitize(v.title),
-						desc = (v.description instanceof $)
-							? v.description
-							: (v.description !== undefined)
+						description = (v.description instanceof $) ? v.description
+							: (!utility.isEmpty(v.description))
 								? $(`<p>${utility.sanitize(v.description)}</p>`) : '',
 						width = parseInt(v.width),
 						noDetails = !!v.noDetails,
-						cb = (v.callback === undefined)
-							? $.noop : v.callback.bind(this.API),
-						rounded = utility.roundToIncrement('floor', opts.markerIncrement, start),
+						evtClass = (!utility.isEmpty(v.class))
+							? ` class="${utility.sanitize(v.class)}"` : '',
+						eventCallback = (utility.isEmpty(v.callback))
+							? $.noop : v.callback.bind(this.API);
+					
+					const rounded = utility.roundToIncrement('floor', opts.markerIncrement, start),
 						index = markerTags.indexOf(rounded),
 						event = $('<div class="jqTimespaceEvent"><span class="jqTimespaceEventBorder"></span></div>'),
-						eventElem = $(`<p><span>${v.title}</span></p>`).prependTo(event);
+						eventElem = $(`<p${evtClass}><span>${title}</span></p>`).prependTo(event);
 					
-					if (!$.isFunction(cb)) {
+					if (!$.isFunction(eventCallback)) {
 						
 						errHandler(new Error(errors.INV_EVENT_CB.msg), 'INV_EVENT_CB', this.error);
 						eventElem.data('eventCallback', $.noop);
@@ -594,32 +600,30 @@
 						// Find the position based on percentage of starting point to the increment amount
 						pos = (((start - markerTags[index]) / opts.markerIncrement) * opts.markerWidth);
 						
-						// Check if jqTimespaceEvent div already exists for this time marker
+						// Check if a jqTimespaceEvent div already exists in this time marker
 						if (timeMarker.find('.jqTimespaceEvent').length > 0) {
-							
 							// Reduce the margin
 							sharingWith = timeMarker.find('.jqTimespaceEvent').css({ marginBottom: 0 });
-							
 						}
 						
 						event.css({ left: pos + 'px' }).appendTo(timeMarker);
 						
 						if (noDetails) { event.addClass('jqTimespaceNoDisplay'); }
 						
+						// Get the actual width for the event and <p> element
 						realWidth = (() => {
 							
 							const curWidth = eventElem.children('span').innerWidth(),
-								endWidth = (end)
-									? ((end - start) / opts.markerIncrement) * opts.markerWidth : 0;
+								endWidth = (end) ? ((end - start) / opts.markerIncrement) * opts.markerWidth : 0;
 							
 							if (width) {
-								return width;
+								return width; // User-defined width
 							} else if (curWidth > endWidth && curWidth > opts.markerWidth) {
-								return curWidth;
+								return curWidth; // Text width
 							} else if (endWidth > opts.markerWidth) {
-								return endWidth;
+								return endWidth; // Timespan width
 							} else {
-								return opts.markerWidth;
+								return opts.markerWidth; // Default marker width
 							}
 							
 						})(); // Immediately invoke arrow function to return width
@@ -630,9 +634,9 @@
 								start: this.getDisplayTime(start),
 								end: this.getDisplayTime(end),
 								title: title,
-								description: desc,
+								description: description,
 								noDetails: noDetails,
-								eventCallback: cb,
+								eventCallback: eventCallback,
 							});
 						
 						events = events.add(eventElem);
@@ -649,6 +653,9 @@
 							
 							if (sharingWith) {
 								
+								// Event is sharing the same td with another event
+								// Start on the next row of the shared element
+								// And start with the basic padding
 								sharedSpace = paddingOrigin;
 								curRow += 1;
 								
@@ -663,12 +670,12 @@
 								
 								if (rows[row] <= event.position().left) {
 									
-									// Cache the new span width and switch to this row space
+									// Row is clear / Cache the new span width and switch to this row space
 									rows[row] = span;
 									curRow = row;
 									
 									// If first row, the normal paddingTop will be used
-									// Otherwise, calculate the current row position
+									// Otherwise, calculate the padding for the current row
 									if (row > 0) {
 										if (sharingWith) {
 											event.css('paddingTop', sharedSpace);
@@ -684,6 +691,7 @@
 									// Push the event down to the next row space
 									if (sharingWith) {
 										
+										// Cache the amount of padding for next row check
 										sharedSpace += paddingTop;
 										event.css('paddingTop', sharedSpace);
 										
@@ -691,7 +699,7 @@
 										event.css('paddingTop', (row + 1) * paddingTop + paddingOrigin);
 									}
 									
-									// Check if on last cached row
+									// If on last cached row, settle with the next row space
 									if (row === rows.length - 1) {
 										
 										rows[row + 1] = span;
@@ -777,7 +785,6 @@
 			
 			// Time Table Events
 			if (this.shiftEnabled) {
-				
 				this.timeTable.on('mousedown', (e) => {
 					
 					this.shiftOrigin = this.getTablePosition();
@@ -786,7 +793,6 @@
 					$(global).on('mousemove.timeShift', this.timeShift.bind(this));
 					
 				});
-				
 			}
 			
 			// Event Marker Events
@@ -795,7 +801,6 @@
 				const elem = $(this);
 				
 				if (!elem.data('noDetails')) {
-					
 					elem.on('mouseup', () => {
 						
 						// Allow if event is not selected and time table has not shifted too much
@@ -807,9 +812,8 @@
 						}
 						
 					});
-					
 				}
-				
+
 			});
 			
 			return this;
@@ -892,9 +896,9 @@
 		},
 		
 		/**
-		 * Shift the time table on mousemove
+		 * Shift the time table
 		 * @param {Object|bool} e The jQuery Event object or false if finished
-		 * @param {string} nav The direction to navigate '<' or '>'
+		 * @param {string} nav The direction to shift '<' or '>'
 		 * @return {Object} The Plugin instance
 		 */
 		timeShift: function (e, nav) {
@@ -965,10 +969,10 @@
 			let time = (start) ? start : '';
 			
 			this.timeEvents.removeClass('jqTimespaceEventSelected');
-			elem.addClass('jqTimespaceEventSelected');
 			this.display.show();
-			this.displayTitle.text(elem.data('title'));
+			this.displayTitle.html(elem.data('title'));
 			this.displayBody.empty().append(elem.data('description'));
+			elem.addClass('jqTimespaceEventSelected');
 			
 			if (time) {
 				
@@ -1063,7 +1067,6 @@
 	/* Utility */
 	/***********/
 	
-	/** Various Utility Methods */
 	utility = {
 		
 		/**
@@ -1159,6 +1162,13 @@
 		},
 		
 		/**
+		 * Check if a variable is empty
+		 * @param {any} v The variable to check
+		 * @return {bool}
+		 */
+		isEmpty: (v) => (v === null || v === undefined || v === ''),
+		
+		/**
 		 * Sanitize a string for DOM insertion
 		 * @param {string} text The text to sanitize
 		 * @return {string}
@@ -1170,6 +1180,7 @@
 		 * @return {bool}
 		 */
 		checkInstance: function (instance) {
+			
 			if (!instance || !instance.API) {
 			
 				errHandler(new Error(errors.INV_INSTANCE.msg), 'INV_INSTANCE');
