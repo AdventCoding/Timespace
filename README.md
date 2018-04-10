@@ -25,16 +25,16 @@ $('#timeContainer').timespace(options, callback);
 | selectedEvent | The index number of the event to start on (0 for first event, -1 to disable) | 0 |
 | shiftOnEventSelect | If the time table should shift when an event is selected | true |
 | customEventDisplay | The jQuery Object of the element to use for the event display box | null |
-| timeType | Use 'hour' or 'date' for the type of time being used | 'hour' |
+| timeType | Use 'hour' or 'date' for the type of time being used. Note: If using 'date', 0 AD will display as 1 AD | 'hour' |
 | use12HourTime | If using 12-Hour time (e.g. '2:00 PM' instead of '14:00') | true |
 | useTimeSuffix | If a suffix should be added to the displayed time (e.g. '12 AM' or '300 AD') - No time suffix is used if timeType is 'hour' and use12HourTime is false | true |
 | timeSuffixFunction | A function that receives the lowercase suffix string and returns a formatted string | s => ' ' + s[0].toUpperCase() + s[1].toUpperCase() |
-| startTime | The starting time number | 0 |
-| endTime | The ending time number | 24 |
+| startTime | The starting time | 0 |
+| endTime | The ending time | 24 |
 | markerAmount | The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement) | 0 |
-| markerIncrement | The amount of time between each marker | 1 |
-| markerWidth | The width of each time marker (0 to calculate from maxWidth and markerAmount) | 100 |
-| data | The data to use for the Timespace instance (See below for more info), or a URL for loading the data with jQuery.get() | null |
+| markerIncrement | The amount of time each marker spans | 1 |
+| markerWidth | The width of each time marker td element (0 to calculate from maxWidth and markerAmount) | 100 |
+| data | The data to use for the Timespace instance (See below for more info), or a URL for loading the data object with jQuery.get() | null |
 
 ```js
 let data = {

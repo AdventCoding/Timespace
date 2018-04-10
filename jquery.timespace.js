@@ -61,12 +61,12 @@
 	* @property {bool} useTimeSuffix If a suffix should be added to the displayed time (e.g. '12 AM' or '300 AD')
 		No time suffix is used if timeType is hour and use12HourTime is false
 	* @property {Function} timeSuffixFunction A function that receives the lowercase suffix string and returns a formatted string
-	* @property {number} startTime The starting time number
-	* @property {number} endTime The ending time number
+	* @property {number} startTime The starting time
+	* @property {number} endTime The ending time
 	* @property {number} markerAmount The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement)
-	* @property {number} markerIncrement The amount of time between each marker
-	* @property {number} markerWidth The width of each time marker (0 to calculate from maxWidth and markerAmount)
-	* @property {Data} data The data to use for the Timespace instance, or a URL for loading the data with jQuery.get()
+	* @property {number} markerIncrement The amount of time each marker spans
+	* @property {number} markerWidth The width of each time marker td element (0 to calculate from maxWidth and markerAmount)
+	* @property {Data} data The data to use for the Timespace instance, or a URL for loading the data object with jQuery.get()
 	*/
 	const defaults = {
 		maxWidth: 1000,
