@@ -102,9 +102,17 @@
 	.jqTimepsaceContainer thead th:not(:first-child) {
 		border-left: 1px solid #b4b4b4;
 	}
+	.jqTimepsaceContainer .jqTimespaceHeading {
+		padding: 0 0.5rem;
+	}
 	.jqTimepsaceContainer thead th.jqTimespaceDummySpan {
 		background: #22252c;
 		opacity: 0.4;
+	}
+	.jqTimepsaceContainer .jqTimespaceTitleClamp {
+		display: block;
+		position: absolute;
+		opacity: 0;
 	}
 	.jqTimepsaceContainer thead th.jqTimespaceDummySpan:not(:first-child) {
 		border-left: 1px solid #6b6b6b;

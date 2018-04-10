@@ -18,7 +18,7 @@
  * @return void
  */
 (($, global) => {
-	
+	//todo Duplicate long heading spans that stick with the container when moved
 	// When in debug mode, errHandler will throw the Error
 	const debug = false;
 	
@@ -201,13 +201,12 @@
 		// Calculations
 		totalTime: 0,
 		markerTags: null,
-		tableWidth: 0,
 		shiftEnabled: true,
-		shiftOrigin: 0,
 		shiftPos: null,
 		shiftDir: '=',
 		lastMousePos: 0,
 		transition: -1,
+		viewData: null,
 		
 		// Elements
 		container: '<div class="jqTimepsaceContainer"></div>',
@@ -225,6 +224,8 @@
 		timeTableBody: '<tbody><tr></tr></tbody>',
 		timeMarkers: null,
 		timeEvents: null,
+		wideHeadings: null,
+		curWideHeading: null,
 		
 		/**
 		 * The main method to load the Plugin with async data
@@ -284,13 +285,27 @@
 				this.tableContainer.prepend(this.navRight, this.navLeft);
 			}
 			
+			// 0 values are updated once elements are built
+			this.viewData = {
+				left: Math.ceil(this.tableContainer.offset().left),
+				width: Math.ceil(this.tableContainer.innerWidth()),
+				half: Math.ceil(this.tableContainer.innerWidth() / 2),
+				offset: 0,
+				tableWidth: 0,
+				tableOffset: 0,
+				headerHeight: 0,
+				headerLineHeight: 0,
+				shiftOrigin: 0,
+			};
+			this.viewData.offset = this.viewData.left + this.viewData.width;
+			
 			this.calculateMarkers()
 				.buildTimeTable()
 				.buildTimeEvents()
 				.buildTimeDisplay()
 				.setDOMEvents();
 			
-			this.shiftOrigin = this.getTablePosition();
+			this.viewData.shiftOrigin = this.getTablePosition();
 			
 			// Select first event if possible
 			if (this.timeEvents.length > 0 && opts.selectedEvent >= 0) {
@@ -333,10 +348,10 @@
 				markers = this.getTimeMarkers();
 			
 			// Table width is used to force marker width, offset is used for mousemove event
-			this.tableWidth = opts.markerAmount * opts.markerWidth || 'auto';
-			this.tableOffset = this.tableWidth - (this.container.outerWidth() - 1);
+			this.viewData.tableWidth = opts.markerAmount * opts.markerWidth || 'auto';
+			this.viewData.tableOffset = this.viewData.tableWidth - (this.container.outerWidth() - 1);
 			
-			this.timeTable = $(this.timeTable).width(this.tableWidth).appendTo(this.tableContainer);
+			this.timeTable = $(this.timeTable).width(this.viewData.tableWidth).appendTo(this.tableContainer);
 			this.timeTableLine = $(this.timeTableLine).appendTo(this.tableContainer);
 			this.timeTableHead = $(this.timeTableHead).appendTo(this.timeTable);
 			this.timeTableBody = $(this.timeTableBody).appendTo(this.timeTable);
@@ -345,17 +360,29 @@
 			if (headings.length === 0) {
 				this.timeTable.find('thead').css('display', 'none');
 			} else {
+				
 				headings.appendTo(this.timeTableHead.children('tr'));
+				this.viewData.headerHeight = Math.ceil(this.timeTableHead.innerHeight());
+				this.viewData.headerLineHeight = parseInt(this.timeTableHead.css('lineHeight'));
+				
 			}
 			
 			// Check if table is too small to shift
-			if (this.tableOffset < 0) {
+			if (this.viewData.tableOffset < 0) {
 				
 				this.shiftEnabled = false;
 				this.timeTable.css('margin', '0 auto');
 				this.navLeft.hide();
 				this.navRight.hide();
 				this.timeTableLine.hide();
+				
+			} else {
+				
+				// Update heading text widths for any wide headings
+				this.wideHeadings.each(function (i, elem) {
+					$(elem).data('textSpan', $(elem).children('span').outerWidth());
+				});
+				this.updateCurWideHeading();
 				
 			}
 			
@@ -371,9 +398,12 @@
 			
 			const opts = this.options;
 			
-			let dummy = '<th class="jqTimespaceDummySpan" colspan="1"></th>',
+			let th = '<th colspan="1"><span class="jqTimespaceHeading">{title}</span></th>',
+				dummy = '<th class="jqTimespaceDummySpan" colspan="1"></th>',
 				headings = $(),
 				curSpan = 0;
+			
+			this.wideHeadings = $();
 			
 			if (this.data.headings) {
 				this.data.headings.forEach((v, i, a) => {
@@ -420,8 +450,16 @@
 					// Add current heading
 					curSpan = utility.getTimeSpan(start, end, opts.markerIncrement) || 0;
 					headings = headings.add(
-						$(`<th colspan="${curSpan}">${title}</th>`)
+						$(th.replace('{title}', title)).attr('colspan', curSpan)
 					);
+					
+					// Check if heading needs a title clamp
+					if (curSpan * opts.markerIncrement > this.viewData.width * 1.75) {
+						this.wideHeadings = this.wideHeadings.add(headings.last().data({
+							span: curSpan * opts.markerWidth,
+							textSpan: 0, // Updated after headings are appended to table
+						}));
+					}
 					
 					// Create dummy span to cover ending if needed
 					if (i === a.length - 1
@@ -439,6 +477,96 @@
 			}
 			
 			return headings;
+			
+		},
+		
+		/**
+		 * Update the currently visible wide heading
+		 * @return {Object} The Plugin instance
+		 */
+		updateCurWideHeading: function () {
+			
+			if (!this.checkCurWideHeading() && this.wideHeadings.length > 0) {
+				this.wideHeadings.each((i, elem) => {
+					this.setCurWideHeading($(elem));
+				});
+			}
+			
+			return this;
+			
+		},
+		
+		/**
+		 * Check if the current wide heading is still in visible bounds
+		 * @param {Object?} elem The optional jQuery heading th element
+		 * @return {bool}
+		 */
+		checkCurWideHeading: function (elem) {
+			
+			const e = elem || this.curWideHeading;
+			
+			if (!e || e.length < 1) { return false; }
+			
+			const left = e.offset().left,
+				textSpan = e.data('textSpan');
+			
+			return ((left + e.data('span') - textSpan - this.viewData.half) > this.viewData.left
+				&& (left + textSpan + this.viewData.half) < this.viewData.offset);
+			
+		},
+		
+		/**
+		 * Set the currently visible wide heading
+		 * @param {Object} elem The jQuery heading th element
+		 * @return {Object} The Plugin instance
+		 */
+		setCurWideHeading: function (elem) {
+			
+			const ts = this,
+				id = 'jqTimespaceTitleClamp';
+			
+			let lastHeading = null;
+			
+			if (this.checkCurWideHeading(elem)) {
+				
+				// Remove current title clamp if exists
+				if (this.curWideHeading) {
+					this.curWideHeading.children('span').css('opacity', 1);
+				}
+				
+				// Set up new clone title for heading clamp
+				this.curWideHeading = elem;
+				elem.children('span').css('opacity', 0)
+					.clone()
+					.addClass(id)
+					.prependTo(this.tableContainer)
+					.css({
+						top: (this.viewData.headerHeight / 2) - (this.viewData.headerLineHeight / 2),
+						left: this.viewData.half - (elem.data('textSpan') / 2)
+					})
+					.animate({ opacity: 1 }, 500);
+				
+			} else if (this.curWideHeading
+				&& this.curWideHeading[0] === elem[0]) {
+				
+				// Current wide heading is no longer within view range
+				this.curWideHeading.children('span').css('opacity', 1);
+				lastHeading = this.curWideHeading;
+				this.curWideHeading = null;
+				
+				// Fade out old clamp and remove if not needed
+				this.tableContainer.find('.' + id).animate({ 'opacity' : 0 }, 500, function () {
+					
+					// Only remove if not still in use
+					if (!ts.curWideHeading || ts.curWideHeading[0] !== lastHeading[0]) {
+						$(this).remove();
+					}
+					
+				});
+				
+			}
+			
+			return this;
 			
 		},
 		
@@ -768,7 +896,7 @@
 				}
 				
 			}).on('resize', () => {
-				this.tableOffset = this.tableWidth - (this.container.outerWidth() - 1);
+				this.viewData.tableOffset = this.viewData.tableWidth - (this.container.outerWidth() - 1);
 			});
 			
 			// Navigation Events
@@ -787,7 +915,7 @@
 			if (this.shiftEnabled) {
 				this.timeTable.on('mousedown', (e) => {
 					
-					this.shiftOrigin = this.getTablePosition();
+					this.viewData.shiftOrigin = this.getTablePosition();
 					this.lastMousePos = e.pageX;
 					this.setTimeShiftState(true);
 					$(global).on('mousemove.timeShift', this.timeShift.bind(this));
@@ -805,7 +933,7 @@
 						
 						// Allow if event is not selected and time table has not shifted too much
 						if (!elem.hasClass('jqTimespaceEventSelected') &&
-							Math.abs(ts.shiftOrigin - ts.getTablePosition()) < 10) {
+							Math.abs(ts.viewData.shiftOrigin - ts.getTablePosition()) < 10) {
 							
 							ts.displayEvent(elem);
 							
@@ -862,7 +990,7 @@
 		},
 		
 		/**
-		 * Set the time table and container classes for shifting
+		 * Set the time table and container states for shifting
 		 * @return {Object} The Plugin instance
 		 */
 		setTimeShiftState: function (on) {
@@ -921,22 +1049,24 @@
 			if (this.shiftPos !== null) {
 				
 				// Table must be moved within bounds
-				if ((this.shiftDir === '<' && this.shiftPos >= -this.tableOffset)
+				if ((this.shiftDir === '<' && this.shiftPos >= -this.viewData.tableOffset)
 					|| (this.shiftDir === '>' && this.shiftPos <= 0)) {
 					
 					this.timeTable.css('left', this.shiftPos + 'px');
 					this.tableContainer.css('backgroundPosition', `bottom 0 left ${Math.floor(this.shiftPos / 3)}px`);
 					
-				} else if (this.shiftDir === '<' && this.shiftPos < -this.tableOffset) {
+				} else if (this.shiftDir === '<' && this.shiftPos < -this.viewData.tableOffset) {
 					
-					this.timeTable.css('left', -this.tableOffset + 'px');
-					this.tableContainer.css('backgroundPosition', `bottom 0 left ${Math.floor(-this.tableOffset / 3)}px`);
+					this.timeTable.css('left', -this.viewData.tableOffset + 'px');
+					this.tableContainer.css('backgroundPosition', `bottom 0 left ${Math.floor(-this.viewData.tableOffset / 3)}px`);
 					
 				} else if (this.shiftDir === '>' && this.shiftPos > 0) {
 					
 					this.timeTable.css('left', 0);
 					this.tableContainer.css('backgroundPosition', 'bottom 0 left 0');
 				}
+				
+				this.updateCurWideHeading();
 				
 			}
 			
