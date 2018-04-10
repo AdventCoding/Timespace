@@ -550,8 +550,9 @@
 				markerTags = this.markerTags,
 				events = $(),
 				rows = [],
-				marginOrigin = 0,
-				marginTop = 0;
+				curRow = 0,
+				paddingOrigin = 0,
+				paddingTop = 0;
 			
 			if (this.data.events) {
 				this.data.events.forEach((v, i) => {
@@ -569,8 +570,8 @@
 							? $.noop : v.callback.bind(this.API),
 						rounded = utility.roundToIncrement('floor', opts.markerIncrement, start),
 						index = markerTags.indexOf(rounded),
-						event = $('<div class="jqTimespaceEvent"></div>'),
-						eventElem = $(`<p><span>${v.title}</span></p>`).appendTo(event);
+						event = $('<div class="jqTimespaceEvent"><span class="jqTimespaceEventBorder"></span></div>'),
+						eventElem = $(`<p><span>${v.title}</span></p>`).prependTo(event);
 					
 					if (!$.isFunction(cb)) {
 						
@@ -583,7 +584,8 @@
 						pos = 0,
 						realWidth = 0,
 						span = 0,
-						hasSharedSpace = false;
+						sharingWith = null,
+						sharedSpace = 0;
 					
 					if (index >= 0) {
 						
@@ -596,8 +598,7 @@
 						if (timeMarker.find('.jqTimespaceEvent').length > 0) {
 							
 							// Reduce the margin
-							timeMarker.find('.jqTimespaceEvent').css({ marginBottom: 0 });
-							hasSharedSpace = true;
+							sharingWith = timeMarker.find('.jqTimespaceEvent').css({ marginBottom: 0 });
 							
 						}
 						
@@ -641,39 +642,62 @@
 						if (i === 0) {
 							
 							rows.push(span);
-							marginOrigin = parseInt(event.css('marginTop'));
-							marginTop = Math.floor(marginOrigin + event.innerHeight());
+							paddingOrigin = parseInt(event.css('paddingTop'));
+							paddingTop = Math.floor(paddingOrigin + eventElem.outerHeight());
 							
 						} else {
 							
-							if (!hasSharedSpace) {
+							if (sharingWith) {
 								
-								for (let row = 0; row < rows.length; row += 1) {
+								sharedSpace = paddingOrigin;
+								curRow += 1;
+								
+								// Check if rows array needs expanding
+								if (rows.length === curRow) {
+									rows[curRow] = 0;
+								}
+								
+							}
+							
+							for (let row = (sharingWith) ? curRow : 0; row < rows.length; row += 1) {
+								
+								if (rows[row] <= event.position().left) {
 									
-									if (rows[row] <= event.position().left) {
-										
-										// Cache the new span width and switch to this row space
-										rows[row] = span;
-										
-										// If first row, the normal marginTop will be used
-										if (row > 0) {
-											event.css('marginTop', row * marginTop + marginOrigin);
+									// Cache the new span width and switch to this row space
+									rows[row] = span;
+									curRow = row;
+									
+									// If first row, the normal paddingTop will be used
+									// Otherwise, calculate the current row position
+									if (row > 0) {
+										if (sharingWith) {
+											event.css('paddingTop', sharedSpace);
+										} else {
+											event.css('paddingTop', row * paddingTop + paddingOrigin);
 										}
+									}
+									
+									break;
+									
+								} else {
+									
+									// Push the event down to the next row space
+									if (sharingWith) {
 										
-										break;
+										sharedSpace += paddingTop;
+										event.css('paddingTop', sharedSpace);
 										
 									} else {
+										event.css('paddingTop', (row + 1) * paddingTop + paddingOrigin);
+									}
+									
+									// Check if on last cached row
+									if (row === rows.length - 1) {
 										
-										// Push the event down to the next row space
-										event.css('marginTop', (row + 1) * marginTop + marginOrigin);
+										rows[row + 1] = span;
+										curRow = row + 1;
 										
-										// Check if on last cached row
-										if (row === rows.length - 1) {
-											
-											rows[row + 1] = span;
-											break;
-											
-										}
+										break;
 										
 									}
 									

@@ -120,14 +120,10 @@
 .jqTimepsaceContainer .jqTimespaceEvent {
 	box-sizing: border-box;
 	position: relative;
-	margin: 1rem 0 0 0;
-	border-left: 1px solid #e6e6e6;
-	padding-top: 0.7rem;
+	margin: 0;
+	padding: 1rem 0 0 0;
 	white-space: nowrap;
 }
-	.jqTimepsaceContainer .jqTimespaceEvent:hover {
-		border-left: 1px dashed #a0a0a0;
-	}
 	.jqTimepsaceContainer .jqTimespaceEvent p {
 		z-index: 99;
 		position: relative;
@@ -147,13 +143,11 @@
 	}
 	.jqTimepsaceContainer .jqTimespaceEvent p:hover,
 		.jqTimepsaceContainer .jqTimespaceEvent .jqTimespaceEventSelected {
-			box-shadow: 0 6px 5px -5px #999999;
+			box-shadow: 3px 8px 10px -10px #999999;
 			background: #fffaf2;
-			transform: rotateY(10deg);
-    		transform-origin: 0 50%;
 		}
-	.jqTimepsaceContainer .jqTimespaceNoDisplay:hover {
-		border-left: 1px solid #e6e6e6;
+	.jqTimepsaceContainer .jqTimespaceEvent p:hover + .jqTimespaceEventBorder {
+		border-left: 1px dashed #363636;
 	}
 	.jqTimepsaceContainer .jqTimespaceNoDisplay p {
 		box-shadow: none;
@@ -165,6 +159,14 @@
 		box-shadow: none;
 		background: #ebebeb;
 		transform: none;
+	}
+	.jqTimespaceEventBorder {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 1px;
+		height: 100%;
+		border-left: 1px dashed #d3d3d3;
 	}
 	
 /* Event Display */
