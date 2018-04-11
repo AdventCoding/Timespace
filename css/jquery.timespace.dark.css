@@ -2,7 +2,7 @@
 
 /* Time Table Transition */
 .jqTimespaceAnimated {
-	transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+	transition: all 1.2s cubic-bezier(0.29, 0.575, 0.465, 1);
 }
 
 /* Error Display */
@@ -86,7 +86,6 @@
 	border-collapse: collapse;
 	padding: 0;
 	line-break: strict;
-	text-align: center;
 	cursor: move;
 }
 	.jqTimepsaceContainer tr {

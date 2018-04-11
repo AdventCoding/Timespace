@@ -72,7 +72,7 @@
 	*/
 	const defaults = {
 		maxWidth: 1000,
-		navigateAmount: 200,
+		navigateAmount: 400,
 		dragMultiplier: 1,
 		selectedEvent: 0,
 		shiftOnEventSelect: true,
@@ -207,8 +207,10 @@
 		shiftEnabled: true,
 		shiftPos: null,
 		shiftDir: '=',
+		navInterval: null,
 		lastMousePos: 0,
 		transition: -1,
+		transitionEase: null,
 		viewData: null,
 		
 		// Elements
@@ -272,6 +274,11 @@
 			this.data = opts.data || {};
 			this.totalTime = (opts.endTime - opts.startTime) || 1;
 			this.markerTags = [];
+			this.navInterval = {
+				dir: 'left',
+				timer: null,
+				engaged: false,
+			};
 			
 			// Setup Base Elements
 			this.container = $(this.container)
@@ -552,7 +559,7 @@
 						top: (this.viewData.headerHeight / 2) - (this.viewData.headerLineHeight / 2),
 						left: this.viewData.half - (elem.data('textSpan') / 2)
 					})
-					.animate({ opacity: 1 }, 500);
+					.animate({ opacity: 1 }, 250);
 				
 			} else if (this.curWideHeading
 				&& this.curWideHeading[0] === elem[0]) {
@@ -563,7 +570,7 @@
 				this.curWideHeading = null;
 				
 				// Fade out old clamp and remove if not needed
-				this.tableContainer.find('.' + id).animate({ 'opacity' : 0 }, 500, function () {
+				this.tableContainer.find('.' + id).animate({ 'opacity' : 0 }, 250, function () {
 					
 					// Only remove if not still in use
 					if (!ts.curWideHeading || ts.curWideHeading[0] !== lastHeading[0]) {
@@ -594,7 +601,7 @@
 				curTime = (i === 0) ? opts.startTime : curTime + opts.markerIncrement;
 				this.markerTags.push(curTime);
 				
-				markers = markers.add($(`<td>${this.getDisplayTime(curTime)}</td>`));
+				markers = markers.add($(`<td><time>${this.getDisplayTime(curTime)}</time></td>`));
 				
 			}
 			
@@ -887,13 +894,15 @@
 		 */
 		setDOMEvents: function () {
 			
-			// Change classes for element movement
 			const ts = this;
 			
 			// Window Events
 			$(global).on('mouseup', () => {
 				
 				$(global).off('mousemove.timeShift');
+				
+				// Clear nav button interval if needed
+				this.clearNavInterval();
 				
 				// Run timeShift once more on completion and animate movement
 				if (this.timeTable.hasClass('jqTimespaceShifting')) {
@@ -904,17 +913,20 @@
 				}
 				
 			}).on('resize', () => {
+				
 				this.viewData.tableOffset = this.viewData.tableWidth - (this.container.outerWidth() - 1);
+				this.viewData.heightOverhang = (this.tableContainer.outerHeight() > $(global).height() * 0.8);
+				
 			});
 			
 			// Navigation Events
 			if (this.options.navigateAmount > 0) {
 				
-				this.navLeft.on('click', () => {
-					this.navigate('left', -1);
+				this.navLeft.on('mousedown', () => {
+					this.setNavInterval('left');
 				});
-				this.navRight.on('click', () => {
-					this.navigate('right', -1);
+				this.navRight.on('mousedown', () => {
+					this.setNavInterval('right');
 				});
 				
 			}
@@ -957,20 +969,63 @@
 		},
 		
 		/**
+		 * Set up navigation interval for holding down left or right nav buttons
+		 * @param {string} dir 'left' or 'right'
+		 * @return void
+		 */
+		setNavInterval: function (dir) {
+			
+			this.navInterval.dir = dir;
+			this.navigate(dir, -1);
+			this.navInterval.timer = setInterval(() => {
+				
+				this.navInterval.engaged = true;
+				this.navigate(dir, -1, 'linear');
+				
+			}, 200);
+			
+		},
+		
+		/**
+		 * Clear navigation interval
+		 * @return void
+		 */
+		clearNavInterval: function () {
+			
+			if (this.navInterval.timer) {
+				
+				clearInterval(this.navInterval.timer);
+				this.navInterval.timer = null;
+				
+				if (this.navInterval.engaged) {
+					
+					this.navInterval.engaged = false;
+					this.navigate((this.navInterval.dir === 'left')
+						? -this.options.markerWidth : this.options.markerWidth, -1);
+					
+				}
+				
+			}
+			
+		},
+		
+		/**
 		 * Navigate the time table in a direction or by a specified amount
 		 * @param {string|number} direction 'left', 'right', or a positive or negative amount
 		 * @param {number} duration The duration in seconds, or -1
+		 * @param {string} ease The transition ease type
 		 * @param {bool} isTableShift If the direction amount is the actual table shiftPos
 		 * @return {Object} The Plugin instance
 		 */
-		navigate: function (dir, duration, isTableShift) {
+		navigate: function (dir, duration, ease, isTableShift) {
 			
 			this.transition = duration;
+			this.transitionEase = ease;
 			this.setTimeShiftState(false);
 			
 			if (typeof dir === 'number') {
 				
-				// If shifting table or shifting by an amount
+				// If shifting table or navigating by an amount
 				if (isTableShift) {
 					
 					this.shiftDir = (dir > 0) ? '>' : '<';
@@ -1003,26 +1058,32 @@
 		 */
 		setTimeShiftState: function (on) {
 			
+			const tables = this.tableContainer.add(this.timeTable);
+			
 			// Reset Transition
-			this.tableContainer.removeClass('jqTimespaceAnimated').css('transitionDuration', '');
-			this.timeTable.removeClass('jqTimespaceAnimated').css('transitionDuration', '');
+			tables.removeClass('jqTimespaceAnimated').css({
+				transitionDuration: '',
+				transitionTimingFunction: '',
+			});
 			
 			if (on) {
 				
 				this.timeTable.addClass('jqTimespaceShifting');
-				this.transition = -1; // Reset the user supplied transition duration
+				this.transition = -1; // Reset the custom transition duration
 				
 			} else {
 				
-				this.tableContainer.addClass('jqTimespaceAnimated');
-				this.timeTable.addClass('jqTimespaceAnimated').removeClass('jqTimespaceShifting');
+				tables.addClass('jqTimespaceAnimated');
+				this.timeTable.removeClass('jqTimespaceShifting');
 				
 				// Check if custom transition time is used
 				if (this.transition >= 0) {
-					
-					this.tableContainer.css('transitionDuration', this.transition + 's');
-					this.timeTable.css('transitionDuration', this.transition + 's');
-					
+					tables.css('transitionDuration', this.transition + 's');
+				}
+				
+				// Check if custom transition ease is used
+				if (!utility.isEmpty(this.transitionEase)) {
+					tables.css('transitionTimingFunction', this.transitionEase);
 				}
 				
 			}
@@ -1138,7 +1199,7 @@
 				
 				// Shift the time table to the selected event
 				this.navigate(this.timeTableLine.position().left
-					- elem.parents('div').position().left, -1, true);
+					- elem.parents('div').position().left, -1, null, true);
 				
 			}
 			

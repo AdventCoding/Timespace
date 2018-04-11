@@ -53,23 +53,18 @@
 				]
 			},
 			
-		}, function () {
-			
-			// Edit the navigation amount
-			this.navigateAmount = 500;
-			
 		});
 		
 		$('#timeline').timespace({
 			
 			timeType: 'date',
 			useTimeSuffix: false,
-			startTime: 1400,
+			startTime: 500,
 			endTime: 2050,
 			markerIncrement: 50,
 			data: {
 				headings: [
-					{start: 1400, end: 1700, title: 'Age of Discovery'},
+					{start: 500, end: 1750, title: 'Dark Ages'},
 					{start: 1750, end: 1917, title: 'Age of Revolution'},
 					{start: 1971, title: 'Information Age'},
 				],
@@ -80,20 +75,27 @@
 							+ 'Martin Luther was a key player in this event as he stood up against Papal tyranny '
 							+ 'and church apostasy.</p><p>Many other reformers followed in the steps of Luther '
 							+ 'and followed the convictions of their hearts, even unto death.</p>')},
+					{start: 1773, title: 'Boston Tea Party'},
 					{start: 1775, end: 1783, title: 'American Revolution', description: 'Description:', callback: function () {
 						
 						this.container.find('.jqTimespaceDisplay section').append(
 							'<p>This description was brought to you by the callback function. For information on the American Revolution, '
-							+ '<br><a target="_blank" href="https://en.wikipedia.org/wiki/American_Revolution">Visit the Wikipedia page.</a></p>'
+							+ '<a target="_blank" href="https://en.wikipedia.org/wiki/American_Revolution">visit the Wikipedia page.</a></p>'
 						);
 						
 					}},
+					{start: 1789, title: 'French Revolution'},
 					{start: 1914, end: 1918, title: 'World War I', noDetails: true},
 					{start: 1929, end: 1939, title: 'Great Depression',
 						description: 'A period of global economic downturn. Many experienced unemployment and the basest poverty.'
 					},
 				]
 			},
+			
+		}, function () {
+			
+			// Edit the navigation amount
+			this.navigateAmount = 500;
 			
 		});
 		
