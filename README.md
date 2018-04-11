@@ -23,7 +23,8 @@ $('#timeContainer').timespace(options, callback);
 | maxWidth | The maximum width for the Timespace container | 1000 |
 | navigateAmount | The amount of pixels to move the Timespace on navigation (0 to disable) | 200 |
 | selectedEvent | The index number of the event to start on (0 for first event, -1 to disable) | 0 |
-| shiftOnEventSelect | If the time table should shift when an event is selected | true |
+| shiftOnEventSelect | If the time table should shift on event selection | true |
+| scrollToDisplayBox | If the window should scroll to the event display box on event selection (only applies if the time table height is greater than the window height) | true |
 | customEventDisplay | The jQuery Object of the element to use for the event display box | null |
 | timeType | Use 'hour' or 'date' for the type of time being used. Note: If using 'date', 0 AD will display as 1 AD | 'hour' |
 | use12HourTime | If using 12-Hour time (e.g. '2:00 PM' instead of '14:00') | true |

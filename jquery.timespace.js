@@ -55,6 +55,8 @@
 	* @property {number} navigateAmount The amount of pixels to move the Timespace on navigation (0 to disable)
 	* @property {number} selectedEvent The index number of the event to start on (0 for first event, -1 to disable)
 	* @property {bool} shiftOnEventSelect If the time table should shift when an event is selected
+	* @property {bool} scrollToDisplayBox If the window should scroll to the event display box on event selection
+		(only applies if the time table height is greater than the window height)
 	* @property {Object} customEventDisplay The jQuery Object of the element to use for the event display box
 	* @property {string} timeType Use 'hour' or 'date' for the type of time being used
 	* @property {bool} use12HourTime If using 12-Hour time (e.g. '2:00 PM' instead of '14:00')
@@ -74,6 +76,7 @@
 		dragMultiplier: 1,
 		selectedEvent: 0,
 		shiftOnEventSelect: true,
+		scrollToDisplayBox: true,
 		customEventDisplay: null,
 		timeType: 'hour',
 		use12HourTime: true,
@@ -290,6 +293,7 @@
 				left: Math.ceil(this.tableContainer.offset().left),
 				width: Math.ceil(this.tableContainer.innerWidth()),
 				half: Math.ceil(this.tableContainer.innerWidth() / 2),
+				heightOverhang: 0,
 				offset: 0,
 				tableWidth: 0,
 				tableOffset: 0,
@@ -306,10 +310,11 @@
 				.setDOMEvents();
 			
 			this.viewData.shiftOrigin = this.getTablePosition();
+			this.viewData.heightOverhang = (this.tableContainer.outerHeight() > $(global).height() * 0.8);
 			
-			// Select first event if possible
+			// Select first event if & prevent scrolling / or hide display
 			if (this.timeEvents.length > 0 && opts.selectedEvent >= 0) {
-				this.timeEvents.eq(opts.selectedEvent).trigger('mouseup');
+				this.timeEvents.eq(opts.selectedEvent).trigger('mouseup', [true]);
 			} else {
 				this.display.hide();
 			}
@@ -454,7 +459,7 @@
 					);
 					
 					// Check if heading needs a title clamp
-					if (curSpan * opts.markerIncrement > this.viewData.width * 1.75) {
+					if (curSpan * opts.markerWidth > this.viewData.width * 1.75) {
 						this.wideHeadings = this.wideHeadings.add(headings.last().data({
 							span: curSpan * opts.markerWidth,
 							textSpan: 0, // Updated after headings are appended to table
@@ -482,13 +487,14 @@
 		
 		/**
 		 * Update the currently visible wide heading
+		 * @param {number} difference The shift difference if table is shifting
 		 * @return {Object} The Plugin instance
 		 */
-		updateCurWideHeading: function () {
+		updateCurWideHeading: function (difference) {
 			
-			if (!this.checkCurWideHeading() && this.wideHeadings.length > 0) {
+			if (!this.checkCurWideHeading(null, difference) && this.wideHeadings.length > 0) {
 				this.wideHeadings.each((i, elem) => {
-					this.setCurWideHeading($(elem));
+					this.setCurWideHeading($(elem), difference);
 				});
 			}
 			
@@ -499,15 +505,16 @@
 		/**
 		 * Check if the current wide heading is still in visible bounds
 		 * @param {Object?} elem The optional jQuery heading th element
+		 * @param {number} difference The shift difference if table is shifting
 		 * @return {bool}
 		 */
-		checkCurWideHeading: function (elem) {
+		checkCurWideHeading: function (elem, difference) {
 			
 			const e = elem || this.curWideHeading;
 			
 			if (!e || e.length < 1) { return false; }
 			
-			const left = e.offset().left,
+			const left = e.offset().left - (difference || 0),
 				textSpan = e.data('textSpan');
 			
 			return ((left + e.data('span') - textSpan - this.viewData.half) > this.viewData.left
@@ -518,16 +525,17 @@
 		/**
 		 * Set the currently visible wide heading
 		 * @param {Object} elem The jQuery heading th element
+		 * @param {number} difference The shift difference if table is shifting
 		 * @return {Object} The Plugin instance
 		 */
-		setCurWideHeading: function (elem) {
+		setCurWideHeading: function (elem, difference) {
 			
 			const ts = this,
 				id = 'jqTimespaceTitleClamp';
 			
 			let lastHeading = null;
 			
-			if (this.checkCurWideHeading(elem)) {
+			if (this.checkCurWideHeading(elem, difference)) {
 				
 				// Remove current title clamp if exists
 				if (this.curWideHeading) {
@@ -929,13 +937,13 @@
 				const elem = $(this);
 				
 				if (!elem.data('noDetails')) {
-					elem.on('mouseup', () => {
+					elem.on('mouseup', (e, preventScroll) => {
 						
 						// Allow if event is not selected and time table has not shifted too much
 						if (!elem.hasClass('jqTimespaceEventSelected') &&
 							Math.abs(ts.viewData.shiftOrigin - ts.getTablePosition()) < 10) {
 							
-							ts.displayEvent(elem);
+							ts.displayEvent(elem, preventScroll);
 							
 						}
 						
@@ -1057,16 +1065,19 @@
 					
 				} else if (this.shiftDir === '<' && this.shiftPos < -this.viewData.tableOffset) {
 					
+					this.shiftPos = -this.viewData.tableOffset;
 					this.timeTable.css('left', -this.viewData.tableOffset + 'px');
 					this.tableContainer.css('backgroundPosition', `bottom 0 left ${Math.floor(-this.viewData.tableOffset / 3)}px`);
 					
 				} else if (this.shiftDir === '>' && this.shiftPos > 0) {
 					
+					this.shiftPos = 0;
 					this.timeTable.css('left', 0);
 					this.tableContainer.css('backgroundPosition', 'bottom 0 left 0');
 				}
 				
-				this.updateCurWideHeading();
+				// Update the current wide heading with the shift difference in case of css transition time
+				this.updateCurWideHeading(parseInt(this.timeTable.css('left')) - this.shiftPos);
 				
 			}
 			
@@ -1089,9 +1100,10 @@
 		/**
 		 * Display a time event
 		 * @param {Object} elem The time event jQuery element
+		 * @param {bool} preventScroll If the height overhang scroll should be prevented
 		 * @return {Object} The Plugin instance
 		 */
-		displayEvent: function (elem) {
+		displayEvent: function (elem, preventScroll) {
 			
 			const start = elem.data('start'),
 				end = elem.data('end');
@@ -1112,6 +1124,14 @@
 				
 			} else {
 				this.displayTime.removeClass('jqTimespaceTimeframe');
+			}
+			
+			if (this.options.scrollToDisplayBox
+				&& !preventScroll && this.viewData.heightOverhang) {
+				
+				// Scroll to the Event Display Box
+				$('html, body').animate({ scrollTop: this.display.offset().top });
+				
 			}
 			
 			if (this.options.shiftOnEventSelect) {
