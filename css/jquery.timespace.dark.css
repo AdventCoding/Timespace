@@ -97,6 +97,7 @@
 		margin: 0;
 		border-bottom: 1px solid #575757;
 		padding: 0.8rem 0 0.2rem 0;
+		text-align: center;
 	}
 	.jqTimepsaceContainer thead th:not(:first-child) {
 		border-left: 1px solid #b4b4b4;
@@ -130,8 +131,31 @@
 	margin: 0;
 	padding: 1rem 0 0 0;
 	white-space: nowrap;
+	text-align: left;
 }
-	.jqTimepsaceContainer .jqTimespaceEvent p {
+	.jqTimepsaceContainer .jqTimespaceEventRev {
+		text-align: right;
+	}
+	.jqTimespaceEvent .jqTimespaceEventBorder {
+		position: absolute;
+		top: 0;
+		width: 1px;
+		height: 100%;
+		border-left: 1px dashed #777777;
+	}
+	.jqTimespaceEventRev .jqTimespaceEventBorder {
+		right: 0;
+		border-left: none;
+		border-right: 1px dashed #777777;
+	}
+	.jqTimespaceEvent p:hover + .jqTimespaceEventBorder {
+		border-left: 1px dashed #bebebe;
+	}
+	.jqTimespaceEventRev p:hover + .jqTimespaceEventBorder {
+		border-left: none;
+		border-right: 1px dashed #bebebe;
+	}
+	.jqTimespaceEvent p {
 		z-index: 99;
 		position: relative;
 		box-sizing: border-box;
@@ -139,8 +163,8 @@
 		overflow: hidden;
 		margin: 0;
 		border: 1px solid #818181;
-		border-radius: 0.2rem 0.6rem 0.6rem 0.2rem;
-		padding: 0.5rem 0.5rem;
+		border-radius: 0 0.6rem 0.6rem 0;
+		padding: 0.5rem;
 		height: 2.5rem;
 		line-height: 1.25rem;
 		font-size: 1rem;
@@ -148,35 +172,29 @@
 		background: #282c34;
 		transition: all 0.3s ease-in;
 	}
-	.jqTimepsaceContainer .jqTimespaceEvent p:hover,
-		.jqTimepsaceContainer .jqTimespaceEvent .jqTimespaceEventSelected {
-			box-shadow: 3px 8px 10px -10px #000000;
-			background: #494e58;
-		}
-	.jqTimepsaceContainer .jqTimespaceEvent p:hover + .jqTimespaceEventBorder {
-		border-left: 1px dashed #bebebe;
+	.jqTimespaceEventRev p {
+		border-radius: 0.6rem 0 0 0.6rem;
 	}
-	.jqTimepsaceContainer .jqTimespaceNoDisplay p {
+	.jqTimespaceEvent p:hover, .jqTimespaceEvent .jqTimespaceEventSelected {
+		box-shadow: 3px 8px 10px -10px #000000;
+		background: #494e58;
+	}
+	.jqTimespaceNoDisplay p {
 		box-shadow: none;
 		cursor: move;
 		background: #32373f;
 		opacity: 0.7;
 	}
-	.jqTimepsaceContainer .jqTimespaceNoDisplay p:hover {
+	.jqTimespaceNoDisplay p:hover {
 		box-shadow: none;
 		background: #32373f;
 		transform: none;
 	}
-	.jqTimepsaceContainer .jqTimespaceNoDisplay p:hover + .jqTimespaceEventBorder {
-		border-left: 1px dashed #777777;
+	.jqTimespaceNoDisplay .jqTimespaceEventBorder {
+		border: none;
 	}
-	.jqTimespaceEventBorder {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 1px;
-		height: 100%;
-		border-left: 1px dashed #777777;
+	.jqTimespaceNoDisplay p:hover + .jqTimespaceEventBorder {
+		border: none;
 	}
 	
 /* Event Display */

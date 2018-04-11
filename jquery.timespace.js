@@ -56,7 +56,7 @@
 	* @property {number} selectedEvent The index number of the event to start on (0 for first event, -1 to disable)
 	* @property {bool} shiftOnEventSelect If the time table should shift when an event is selected
 	* @property {bool} scrollToDisplayBox If the window should scroll to the event display box on event selection
-		(only applies if the time table height is greater than the window height)
+		(only applies if the time table height is greater than the window height, and if the event has a description)
 	* @property {Object} customEventDisplay The jQuery Object of the element to use for the event display box
 	* @property {string} timeType Use 'hour' or 'date' for the type of time being used
 	* @property {bool} use12HourTime If using 12-Hour time (e.g. '2:00 PM' instead of '14:00')
@@ -709,7 +709,7 @@
 						title = utility.sanitize(v.title),
 						description = (v.description instanceof $) ? v.description
 							: (!utility.isEmpty(v.description))
-								? $(`<p>${utility.sanitize(v.description)}</p>`) : '',
+								? $(`<p>${utility.sanitize(v.description)}</p>`) : $(),
 						width = parseInt(v.width),
 						noDetails = !!v.noDetails,
 						evtClass = (!utility.isEmpty(v.class))
@@ -730,6 +730,7 @@
 					}
 					
 					let timeMarker = $(),
+						eventOverhang = false,
 						pos = 0,
 						realWidth = 0,
 						span = 0,
@@ -740,26 +741,32 @@
 						
 						timeMarker = $(this.timeMarkers[index]);
 						
-						// Find the position based on percentage of starting point to the increment amount
-						pos = (((start - markerTags[index]) / opts.markerIncrement) * opts.markerWidth);
-						
 						// Check if a jqTimespaceEvent div already exists in this time marker
 						if (timeMarker.find('.jqTimespaceEvent').length > 0) {
-							// Reduce the margin
-							sharingWith = timeMarker.find('.jqTimespaceEvent').css({ marginBottom: 0 });
+							sharingWith = timeMarker.find('.jqTimespaceEvent');
 						}
-						
-						event.css({ left: pos + 'px' }).appendTo(timeMarker);
-						
 						if (noDetails) { event.addClass('jqTimespaceNoDisplay'); }
 						
-						// Get the actual width for the event and <p> element
-						realWidth = (() => {
+						// Find the position based on percentage of starting point to the increment amount
+						pos = (((start - markerTags[index]) / opts.markerIncrement) * opts.markerWidth);
+						event.css('left', pos + 'px').appendTo(timeMarker);
+						
+						// Immediately invoke arrow function to return best width
+						eventElem.width((() => {
 							
-							const curWidth = eventElem.children('span').innerWidth(),
+							const curWidth = eventElem.children('span').width(),
 								endWidth = (end) ? ((end - start) / opts.markerIncrement) * opts.markerWidth : 0;
 							
-							if (width) {
+							let padding = (parseInt(eventElem.css('paddingLeft'))
+									+ parseInt(eventElem.css('paddingRight'))) || 0,
+								tableLength = this.viewData.tableWidth + this.getTablePosition(true),
+								eventOffset = event.offset().left;
+							
+							eventOverhang = (tableLength < eventOffset + curWidth + padding);
+							
+							if (eventOverhang) {
+								return curWidth;
+							} else if (width) {
 								return width; // User-defined width
 							} else if (curWidth > endWidth && curWidth > opts.markerWidth) {
 								return curWidth; // Text width
@@ -769,21 +776,25 @@
 								return opts.markerWidth; // Default marker width
 							}
 							
-						})(); // Immediately invoke arrow function to return width
+						})()).data({
+							start: this.getDisplayTime(start),
+							end: this.getDisplayTime(end),
+							title: title,
+							description: description,
+							noDetails: noDetails,
+							eventCallback: eventCallback,
+						});
+						
+						realWidth = eventElem.outerWidth();
+						
+						// Reverse event if it extends past the table width
+						if (eventOverhang) {
+							event.css('left', pos - realWidth + 'px').addClass('jqTimespaceEventRev');
+						}
 						
 						event.width(realWidth);
-						eventElem.width(realWidth)
-							.data({
-								start: this.getDisplayTime(start),
-								end: this.getDisplayTime(end),
-								title: title,
-								description: description,
-								noDetails: noDetails,
-								eventCallback: eventCallback,
-							});
-						
 						events = events.add(eventElem);
-						span = event.position().left + eventElem.outerWidth(true);
+						span = event.position().left + realWidth;
 						
 						// Cache the row widths for checking overlap
 						if (i === 0) {
@@ -1188,9 +1199,11 @@
 			}
 			
 			if (this.options.scrollToDisplayBox
-				&& !preventScroll && this.viewData.heightOverhang) {
+				&& !preventScroll
+				&& this.viewData.heightOverhang
+				&& elem.data('description').length > 0) {
 				
-				// Scroll to the Event Display Box
+				// Scroll to the Event Display Box if it has a description
 				$('html, body').animate({ scrollTop: this.display.offset().top });
 				
 			}
@@ -1211,10 +1224,11 @@
 		
 		/**
 		 * Get the time table's left position
+		 * @param {bool} offset If the offset is needed
 		 * @return {number}
 		 */
-		getTablePosition: function () {
-			return parseFloat(this.timeTable.css('left'));
+		getTablePosition: function (offset) {
+			return parseFloat((offset) ? this.timeTable.offset().left : this.timeTable.css('left'));
 		},
 		
 		/* The API methods available to the callback functions */
