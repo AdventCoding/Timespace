@@ -71,9 +71,8 @@
 		padding: 0;
 		width: 3px;
 		height: 100%;
-		cursor: move;
 		background: linear-gradient(to top, #444444 0%,#afafaf 15%,#ffffff 100%);
-		opacity: 0.3;
+		opacity: 0.2;
 	}
 	
 /* Timeline Table */
@@ -132,6 +131,7 @@
 	padding: 1rem 0 0 0;
 	white-space: nowrap;
 	text-align: left;
+	background: #ffffff;
 }
 	.jqTimepsaceContainer .jqTimespaceEventRev {
 		text-align: right;
@@ -169,7 +169,6 @@
 		line-height: 1.25rem;
 		font-size: 1rem;
 		cursor: pointer;
-		background: #ffffff;
 		transition: all 0.3s ease-in;
 	}
 	.jqTimespaceEventRev p {

@@ -55,7 +55,7 @@ let data = {
 			title:       string         // The text for the event title
 			description: string||jQuery // The optional text or jQuery Object for the event description
 			width:       number         // The optional width for the event box
-			noDetails:   bool           // If the time event should not have a display
+			noDetails:   bool           // If the time event should not have a display (If noDetails and a description exists, it will be used for the event's title attribute)
 			class:       string         // The optional CSS class to use for the event's <p> element
 			callback:    Function       // The optional callback to run on event selection.
 			// The callback Cannot be an arrow function if calling any API methods within the callback

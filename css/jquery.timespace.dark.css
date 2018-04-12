@@ -71,7 +71,6 @@
 		padding: 0;
 		width: 3px;
 		height: 100%;
-		cursor: move;
 		background: linear-gradient(to top, #ffffff 0%,#cacaca 20%,#474747 100%);
 		opacity: 0.1;
 	}
@@ -132,6 +131,7 @@
 	padding: 1rem 0 0 0;
 	white-space: nowrap;
 	text-align: left;
+	background: #282c34;
 }
 	.jqTimepsaceContainer .jqTimespaceEventRev {
 		text-align: right;
@@ -169,7 +169,6 @@
 		line-height: 1.25rem;
 		font-size: 1rem;
 		cursor: pointer;
-		background: #282c34;
 		transition: all 0.3s ease-in;
 	}
 	.jqTimespaceEventRev p {

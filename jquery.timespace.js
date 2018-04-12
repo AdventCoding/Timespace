@@ -31,6 +31,7 @@
 	 * @property {string?|jQuery} description The optional text or jQuery Object for the event description
 	 * @property {number?} width The optional width for the event <p> element
 	 * @property {bool} noDetails If the time event should not have a display
+		(If noDetails and a description string exists, it will be used for the event's title attribute)
 	 * @property {string} class The optional CSS class to use for the event's <p> element
 	 * @property {Function?} callback The optional callback to run on event selection
 		The callback Cannot be an arrow function if calling any API methods within the callback
@@ -745,7 +746,6 @@
 						if (timeMarker.find('.jqTimespaceEvent').length > 0) {
 							sharingWith = timeMarker.find('.jqTimespaceEvent');
 						}
-						if (noDetails) { event.addClass('jqTimespaceNoDisplay'); }
 						
 						// Find the position based on percentage of starting point to the increment amount
 						pos = (((start - markerTags[index]) / opts.markerIncrement) * opts.markerWidth);
@@ -785,16 +785,25 @@
 							eventCallback: eventCallback,
 						});
 						
+						eventElem.attr('title', eventElem.data('start'));
+						events = events.add(eventElem);
 						realWidth = eventElem.outerWidth();
+						event.width(realWidth);
+						span = event.position().left + realWidth;
+						
+						if (noDetails) {
+							
+							event.addClass('jqTimespaceNoDisplay');
+							eventElem.attr('title', (i, t) => (!utility.isEmpty(description.text()))
+								? `${t} - ${description.text()}` : t
+							);
+							
+						}
 						
 						// Reverse event if it extends past the table width
 						if (eventOverhang) {
 							event.css('left', pos - realWidth + 'px').addClass('jqTimespaceEventRev');
 						}
-						
-						event.width(realWidth);
-						events = events.add(eventElem);
-						span = event.position().left + realWidth;
 						
 						// Cache the row widths for checking overlap
 						if (i === 0) {
