@@ -100,7 +100,7 @@
 		text-align: center;
 	}
 	.jqTimepsaceContainer thead th:not(:first-child) {
-		border-left: 2px solid #b4b4b4;
+		border-left: 1px solid #b4b4b4;
 	}
 	.jqTimepsaceContainer .jqTimespaceHeading {
 		padding: 0 0.5rem;
@@ -221,7 +221,7 @@
 	.jqTimespaceDisplay .jqTimespaceDisplayLeft, .jqTimespaceDisplay .jqTimespaceDisplayRight {
 		width: 0.9rem;
 		height: 1.3rem;
-		background: #854c35;
+		background: #8a5541;
 		cursor: pointer;
 	}
 	.jqTimespaceDisplay .jqTimespaceDisplayLeft {
@@ -234,7 +234,7 @@
 	}
 	.jqTimespaceDisplay .jqTimespaceDisplayLeft:hover,
 		.jqTimespaceDisplay .jqTimespaceDisplayRight:hover {
-			background: #b8816b;
+			background: #c56a45;
 	}
 	.jqTimespaceDisplay .jqTimespaceTimeframe {
 		display: inline-block;
