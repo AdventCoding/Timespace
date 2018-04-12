@@ -10,7 +10,7 @@
 
 /**
  * jQuery Timespace Plugin
- * Important: This Plugin does not support any version of Internet Explorer
+ * Important: This Plugin is not intended to support any version of Internet Explorer unless transpiled
  * @author Michael S. Howard
  * @requires jQuery 1.7+
  * @param $ The jQuery object
@@ -18,7 +18,7 @@
  * @return void
  */
 (($, global) => {
-	//todo Duplicate long heading spans that stick with the container when moved
+	
 	// When in debug mode, errHandler will throw the Error
 	const debug = false;
 	
@@ -220,10 +220,13 @@
 		error: '<div class="jqTimespaceErrors"></div>',
 		display: '<article class="jqTimespaceDisplay"></article>',
 		displayTitle: '<h1></h1>',
+		displayTimeDiv: '<div class="jqTimespaceDisplayTime"></div>',
 		displayTime: '<p></p>',
 		displayBody: '<section></section>',
-		navLeft: '<div class="jqTimespaceLeft">&lt;</div>',
-		navRight: '<div class="jqTimespaceRight">&gt;</div>',
+		displayLeft: '<div class="jqTimespaceDisplayLeft" title="Previous Event"></div>',
+		displayRight: '<div class="jqTimespaceDisplayRight" title="Next Event"></div>',
+		navLeft: '<div class="jqTimespaceLeft" title="Move Left">&lt;</div>',
+		navRight: '<div class="jqTimespaceRight" title="Move Right">&gt;</div>',
 		tableContainer: '<div class="jqTimespaceTableContainer"></div>',
 		timeTableLine: '<div class="jqTimespaceLine"></div>',
 		timeTable: '<table></table>',
@@ -233,6 +236,7 @@
 		timeEvents: null,
 		wideHeadings: null,
 		curWideHeading: null,
+		curEvent: null,
 		
 		/**
 		 * The main method to load the Plugin with async data
@@ -906,6 +910,10 @@
 				});
 			}
 			
+			if (events.length <= 1) {
+				this.displayLeft.add(this.displayRight).hide();
+			}
+			
 			this.timeEvents = events;
 			
 			return this;
@@ -924,7 +932,10 @@
 				? $(this.display).appendTo($(opts.customEventDisplay))
 				: $(this.display).appendTo(this.container);
 			this.displayTitle = $(this.displayTitle).appendTo(this.display);
-			this.displayTime = $(this.displayTime).appendTo(this.display);
+			this.displayTimeDiv = $(this.displayTimeDiv).appendTo(this.display);
+			this.displayLeft = $(this.displayLeft).appendTo(this.displayTimeDiv);
+			this.displayTime = $(this.displayTime).appendTo(this.displayTimeDiv);
+			this.displayRight = $(this.displayRight).appendTo(this.displayTimeDiv);
 			this.displayBody = $(this.displayBody).appendTo(this.display);
 			
 			return this;
@@ -1003,6 +1014,48 @@
 					});
 				}
 
+			});
+			
+			// Event Display Nav
+			this.displayLeft.on('click', () => {
+				
+				const len = -ts.timeEvents.length,
+					index = ts.timeEvents.index(ts.curEvent);
+				
+				// Check for the next or previous event that doesn't have noDetails
+				if (index >= 0) {
+					for (let i = -1; i >= len; i -= 1) {
+						if (!ts.timeEvents.eq(index + i).data('noDetails')) {
+							
+							ts.displayEvent(ts.timeEvents.eq(index + i));
+							break;
+							
+						}
+					}
+				}
+				
+			});
+			this.displayRight.on('click', () => {
+				
+				const len = ts.timeEvents.length;
+				let index = ts.timeEvents.index(ts.curEvent);
+				
+				// Check for the next event that doesn't have noDetails
+				if (index >= 0) {
+					for (let i = 1; i <= len; i += 1) {
+						
+						// If reached the end of collection, start again at 0 (index + i === 0)
+						if (index + i === len) { index = -i; }
+						if (!ts.timeEvents.eq(index + i).data('noDetails')) {
+							
+							ts.displayEvent(ts.timeEvents.eq(index + i));
+							break;
+							
+						}
+						
+					}
+				}
+				
 			});
 			
 			return this;
@@ -1212,6 +1265,7 @@
 			
 			let time = (start) ? start : '';
 			
+			this.curEvent = elem;
 			this.timeEvents.removeClass('jqTimespaceEventSelected');
 			this.display.show();
 			this.displayTitle.html(elem.data('title'));
