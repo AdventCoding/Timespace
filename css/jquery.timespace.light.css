@@ -73,6 +73,7 @@
 		height: 100%;
 		background: linear-gradient(to top, #444444 0%,#afafaf 15%,#ffffff 100%);
 		opacity: 0.2;
+		cursor: move;
 	}
 	
 /* Timeline Table */
@@ -111,6 +112,8 @@
 	.jqTimepsaceContainer .jqTimespaceTitleClamp {
 		display: block;
 		position: absolute;
+		left: 50%;
+		transform: translateX(-50%);
 		opacity: 0;
 	}
 	.jqTimepsaceContainer thead th.jqTimespaceDummySpan:not(:first-child) {
