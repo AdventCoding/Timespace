@@ -26,7 +26,6 @@
 	.jqTimepsaceContainer .jqTimespaceTableContainer {
 		box-shadow: 0 6px 5px -5px #c4c4c4;
 		border: 1px solid #b4b4b4;
-		padding-bottom: 20px;
 		background: #ffffff url('../images/timespace.line.light.png') bottom 0 left 0 repeat-x;
 		-moz-user-select: none;
 		user-select: none;
@@ -83,7 +82,7 @@
 	table-layout: fixed;
 	left: 0;
 	margin: 0;
-	border-collapse: collapse;
+	border-spacing: 0;
 	padding: 0;
 	line-break: strict;
 	cursor: move;
@@ -92,15 +91,17 @@
 		position: relative;
 		height: 100%;
 	}
+	.jqTimepsaceContainer thead tr {
+		z-index: 2;
+		background: #ffffff;
+	}
 	.jqTimepsaceContainer thead th {
 		box-sizing: border-box;
 		margin: 0;
-		border-bottom: 1px solid #b4b4b4;
-		padding: 0.8rem 0 0.2rem 0;
+		border: 1px solid #b4b4b4;
+		border-collapse: collapse;
+		padding: 0.5rem 0;
 		text-align: center;
-	}
-	.jqTimepsaceContainer thead th:not(:first-child) {
-		border-left: 1px solid #b4b4b4;
 	}
 	.jqTimepsaceContainer .jqTimespaceHeading {
 		padding: 0 0.5rem;
@@ -110,20 +111,26 @@
 		opacity: 0.4;
 	}
 	.jqTimepsaceContainer .jqTimespaceTitleClamp {
+		z-index: 3;
 		display: block;
 		position: absolute;
 		left: 50%;
 		transform: translateX(-50%);
 		opacity: 0;
 	}
-	.jqTimepsaceContainer thead th.jqTimespaceDummySpan:not(:first-child) {
-		border-left: 1px solid #6b6b6b;
+	.jqTimepsaceContainer tbody tr {
+		top: 0;
+		z-index: 1;
 	}
 	.jqTimepsaceContainer tbody td {
 		border-right: 1px dashed #d8d8d8;
+		border-collapse: collapse;
 		height: 100%;
 		min-height: 6.25rem;
 		vertical-align: top;
+	}
+	.jqTimepsaceContainer tbody td .jqTimespaceEvent:last-of-type {
+		margin-bottom: 20px;
 	}
 	
 /* Event Box */
