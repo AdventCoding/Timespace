@@ -78,11 +78,11 @@
 	
 /* Timeline Table */
 .jqTimepsaceContainer table {
+	box-sizing: border-box;
 	position: relative;
 	table-layout: fixed;
 	left: 0;
 	margin: 0;
-	box-sizing: border-box;
 	border-collapse: collapse;
 	padding: 0;
 	line-break: strict;
@@ -205,7 +205,7 @@
 	box-shadow: 0 6px 5px -5px #000000;
 	margin: 1rem auto;
 	border: 1px solid #5f5f5f;
-	padding: 1.5rem 2rem;
+	padding: 1.5rem;
 	background: #282c34;
 }
 	.jqTimespaceDisplay h1 {

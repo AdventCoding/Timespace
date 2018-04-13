@@ -719,8 +719,8 @@
 		 */
 		getFullDate: function (start, end) {
 			
-			let time = (!utility.isEmpty(start)) ? start : '';
-			time += (!utility.isEmpty(end) && end !== start) ? ` – ${end}` : '';
+			let time = (!utility.isEmpty(start)) ? this.getDisplayTime(start) : '';
+			time += (!utility.isEmpty(end) && end !== start) ? ` – ${this.getDisplayTime(end)}` : '';
 			
 			return time;
 			
@@ -821,7 +821,7 @@
 							
 						})())
 							.data({
-								start: this.getFullDate(start, end),
+								time: this.getFullDate(start, end),
 								title: title,
 								description: description,
 								noDetails: noDetails,
