@@ -712,6 +712,21 @@
 		},
 		
 		/**
+		 * Get the full start and end date string
+		 * @param {number} start The start date with the suffix
+		 * @param {number} end The end date with the suffix
+		 * @return {string}
+		 */
+		getFullDate: function (start, end) {
+			
+			let time = (!utility.isEmpty(start)) ? start : '';
+			time += (!utility.isEmpty(end) && end !== start) ? ` – ${end}` : '';
+			
+			return time;
+			
+		},
+		
+		/**
 		 * Build the time table events
 		 * @return {Object} The Plugin instance
 		 */
@@ -760,6 +775,7 @@
 					let timeMarker = $(),
 						eventOverhang = false,
 						pos = 0,
+						eventOffset = 0,
 						realWidth = 0,
 						span = 0,
 						sharingWith = null,
@@ -777,6 +793,7 @@
 						// Find the position based on percentage of starting point to the increment amount
 						pos = (((start - markerTags[index]) / opts.markerIncrement) * opts.markerWidth);
 						event.css('left', pos + 'px').appendTo(timeMarker);
+						eventOffset = Math.floor(event.offset().left);
 						
 						// Immediately invoke arrow function to return best width
 						eventElem.width((() => {
@@ -786,8 +803,7 @@
 							
 							let padding = (parseInt(eventElem.css('paddingLeft'))
 									+ parseInt(eventElem.css('paddingRight'))) || 0,
-								tableLength = this.viewData.tableWidth + this.getTablePosition(true),
-								eventOffset = event.offset().left;
+								tableLength = this.viewData.tableWidth + this.getTablePosition(true);
 							
 							eventOverhang = (tableLength < eventOffset + curWidth + padding);
 							
@@ -798,25 +814,25 @@
 							} else if (curWidth > endWidth && curWidth > opts.markerWidth) {
 								return curWidth; // Text width
 							} else if (endWidth > opts.markerWidth) {
-								return endWidth; // Timespan width
+								return endWidth - padding; // Timespan width
 							} else {
 								return opts.markerWidth; // Default marker width
 							}
 							
-						})()).data({
-							start: this.getDisplayTime(start),
-							end: this.getDisplayTime(end),
-							title: title,
-							description: description,
-							noDetails: noDetails,
-							eventCallback: eventCallback,
-						});
+						})())
+							.data({
+								start: this.getFullDate(start, end),
+								title: title,
+								description: description,
+								noDetails: noDetails,
+								eventCallback: eventCallback,
+							})
+							.attr('title', eventElem.data('time'));
 						
-						eventElem.attr('title', eventElem.data('start'));
 						events = events.add(eventElem);
 						realWidth = eventElem.outerWidth();
 						event.width(realWidth);
-						span = event.position().left + realWidth;
+						span = eventOffset + Math.floor(event.outerWidth());
 						
 						if (noDetails) {
 							
@@ -829,7 +845,10 @@
 						
 						// Reverse event if it extends past the table width
 						if (eventOverhang) {
+							
 							event.css('left', pos - realWidth + 'px').addClass('jqTimespaceEventRev');
+							eventOffset = Math.floor(event.offset().left);
+							
 						}
 						
 						// Cache the row widths for checking overlap
@@ -858,7 +877,7 @@
 							
 							for (let row = (sharingWith) ? curRow : 0; row < rows.length; row += 1) {
 								
-								if (rows[row] <= event.position().left) {
+								if (rows[row] <= eventOffset) {
 									
 									// Row is clear / Cache the new span width and switch to this row space
 									rows[row] = span;
@@ -1260,11 +1279,6 @@
 		 */
 		displayEvent: function (elem, preventScroll) {
 			
-			const start = elem.data('start'),
-				end = elem.data('end');
-			
-			let time = (start) ? start : '';
-			
 			this.curEvent = elem;
 			this.timeEvents.removeClass('jqTimespaceEventSelected');
 			this.display.show();
@@ -1272,10 +1286,9 @@
 			this.displayBody.empty().append(elem.data('description'));
 			elem.addClass('jqTimespaceEventSelected');
 			
-			if (time) {
+			if (!utility.isEmpty(elem.data('time'))) {
 				
-				time += (end && end !== start) ? ` – ${end}` : '';
-				this.displayTime.text(time)
+				this.displayTime.text(elem.data('time'))
 					.addClass('jqTimespaceTimeframe');
 				
 			} else {

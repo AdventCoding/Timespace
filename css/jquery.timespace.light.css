@@ -78,11 +78,11 @@
 	
 /* Timeline Table */
 .jqTimepsaceContainer table {
+	box-sizing: border-box;
 	position: relative;
 	table-layout: fixed;
 	left: 0;
 	margin: 0;
-	box-sizing: border-box;
 	border-collapse: collapse;
 	padding: 0;
 	line-break: strict;
@@ -134,7 +134,6 @@
 	padding: 1rem 0 0 0;
 	white-space: nowrap;
 	text-align: left;
-	background: #ffffff;
 }
 	.jqTimepsaceContainer .jqTimespaceEventRev {
 		text-align: right;
@@ -173,6 +172,7 @@
 		font-size: 1rem;
 		cursor: pointer;
 		transition: all 0.3s ease-in;
+		background: #ffffff;
 	}
 	.jqTimespaceEventRev p {
 		border-radius: 0.6rem 0 0 0.6rem;
