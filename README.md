@@ -22,8 +22,10 @@ $('#timeContainer').timespace(options, callback);
 | Key | Description | Default |
 | :---: | --- | :---: |
 | maxWidth | The maximum width for the Timespace container | 1000 |
-| maxHeight | The maximum height for the Timespace container | 300 |
+| maxHeight | The maximum height for the Timespace container | 320 |
 | navigateAmount | The amount of pixels to move the Timespace on navigation (0 to disable) | 400 |
+| dragXMultiplier | The multiplier to use with navigateAmount when dragging the time table horizontally | 1 |
+| dragYMultiplier | The multiplier to use with navigateAmount when dragging the time table vertically | 1 |
 | selectedEvent | The index number of the event to start on (0 for first event, -1 to disable) | 0 |
 | shiftOnEventSelect | If the time table should shift on event selection | true |
 | scrollToDisplayBox | If the window should scroll to the event display box on event selection (only applies if the time table height is greater than the window height, and if the event has a description) | true |

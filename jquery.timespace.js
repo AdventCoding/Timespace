@@ -55,6 +55,8 @@
 	* @property {number} maxWidth The maximum width for the Timespace container
 	* @property {number} maxHeight The maximum height for the Timespace container
 	* @property {number} navigateAmount The amount of pixels to move the Timespace on navigation (0 to disable)
+	* @property {number} dragXMultiplier The multiplier to use with navigateAmount when dragging the time table horizontally
+	* @property {number} dragYMultiplier The multiplier to use with navigateAmount when dragging the time table vertically
 	* @property {number} selectedEvent The index number of the event to start on (0 for first event, -1 to disable)
 	* @property {bool} shiftOnEventSelect If the time table should shift when an event is selected
 	* @property {bool} scrollToDisplayBox If the window should scroll to the event display box on event selection
@@ -74,9 +76,10 @@
 	*/
 	const defaults = {
 		maxWidth: 1000,
-		maxHeight: 300,
+		maxHeight: 320,
 		navigateAmount: 400,
-		dragMultiplier: 1,
+		dragXMultiplier: 1,
+		dragYMultiplier: 1,
 		selectedEvent: 0,
 		shiftOnEventSelect: true,
 		scrollToDisplayBox: true,
@@ -1269,6 +1272,7 @@
 				lastMousePos = 'lastMousePos' + plane,
 				shiftPos = 'shiftPos' + plane,
 				shiftDir = 'shiftDir' + plane,
+				dragMultiplier = `drag${plane}Multiplier`,
 				posMethod = (isX) ? 'getTablePosition' : 'getTableBodyPosition';
 			
 			let dir = 0;
@@ -1276,7 +1280,7 @@
 			if (val !== this[lastMousePos] && !finished) {
 				
 				dir = val - this[lastMousePos];
-				this[shiftPos] = this[posMethod]() + (dir * this.options.dragMultiplier);
+				this[shiftPos] = this[posMethod]() + (dir * this.options[dragMultiplier]);
 				this[shiftDir] = (dir < 0) ? '<' : '>';
 				this[lastMousePos] = val;
 				
