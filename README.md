@@ -6,6 +6,7 @@ The jQuery Timespace plugin is a way to handle the display of event data in a ho
 ## Example
 
 See the example.html file for more details.
+>[Codepen](https://codepen.io/adventcoding/full/pLXGOO/)
 
 ## API
 
