@@ -103,6 +103,9 @@
 		padding: 0.5rem 0;
 		text-align: center;
 	}
+	.jqTimepsaceContainer thead td {
+		border-bottom: 1px solid #b4b4b4;
+	}
 	.jqTimepsaceContainer .jqTimespaceHeading {
 		padding: 0 0.5rem;
 	}

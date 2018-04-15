@@ -342,6 +342,7 @@
 				.buildTimeTable()
 				.buildTimeEvents()
 				.buildTimeDisplay()
+				.updateStaticData()
 				.updateDynamicData()
 				.setDOMEvents();
 			
@@ -357,24 +358,35 @@
 		},
 		
 		/**
+		 * Update the static container data
+		 * @return {Object} The Plugin instance
+		 */
+		updateStaticData: function () {
+			
+			this.viewData.top = Math.ceil(this.tableContainer.offset().top);
+			this.viewData.height = Math.ceil(this.tableContainer.innerHeight());
+			this.viewData.offsetY = this.viewData.top + this.viewData.height;
+			this.viewData.halfY = Math.ceil(this.viewData.height / 2);
+			this.viewData.shiftOriginY = this.getTableBodyPosition();
+			this.viewData.tableOffsetY = this.timeTable.outerHeight() - this.tableContainer.outerHeight() - 1;
+			
+			return this;
+			
+		},
+		
+		/**
 		 * Update the dynamic container and table data
 		 * @return {Object} The Plugin instance
 		 */
 		updateDynamicData: function () {
 			
 			this.viewData.left = Math.ceil(this.tableContainer.offset().left);
-			this.viewData.top = Math.ceil(this.tableContainer.offset().top),
 			this.viewData.width = Math.ceil(this.tableContainer.innerWidth());
-			this.viewData.height = Math.ceil(this.tableContainer.innerHeight()),
 			this.viewData.halfX = Math.ceil(this.viewData.width / 2);
-			this.viewData.halfY = Math.ceil(this.viewData.height / 2);
 			this.viewData.heightOverhang = (this.tableContainer.outerHeight() > $(global).height() * 0.8);
 			this.viewData.offsetX = this.viewData.left + this.viewData.width;
-			this.viewData.offsetY = this.viewData.top + this.viewData.height;
 			this.viewData.shiftOriginX = this.getTablePosition();
-			this.viewData.shiftOriginY = this.getTableBodyPosition();
 			this.viewData.tableOffsetX = this.timeTable.outerWidth() - this.tableContainer.outerWidth() - 1;
-			this.viewData.tableOffsetY = this.timeTable.outerHeight() - this.tableContainer.outerHeight() - 1;
 			
 			// Check if table is too small to shift
 			if (this.viewData.tableOffsetX < 0) {
@@ -446,19 +458,21 @@
 			this.timeTableBody = $(this.timeTableBody)
 				.appendTo(this.timeTable)
 				.children('tr');
-			this.timeMarkers = markers.appendTo(this.timeTableBody);
 			
 			if (headings.length === 0) {
-				this.timeTable.find('thead').css('display', 'none');
+				this.timeTableHead.children('tr').css('display', 'none');
 			} else {
 				headings.appendTo(this.timeTableHead.children('tr'));
 			}
+			
+			markers[0].appendTo(this.timeTableHead);
+			this.timeMarkers = markers[1].appendTo(this.timeTableBody);
 			
 			// Update heading text widths for any wide headings
 			this.wideHeadings.each(function (i, elem) {
 				$(elem).data('textSpan', $(elem).children('span').outerWidth());
 			});
-			this.viewData.headerHeight = Math.ceil(this.timeTableHead.innerHeight());
+			this.viewData.headerHeight = Math.ceil(this.timeTableHead.children('tr:first-child').innerHeight());
 			this.viewData.headerLineHeight = parseInt(this.timeTableHead.css('lineHeight'));
 			
 			return this;
@@ -563,7 +577,7 @@
 			
 			const opts = this.options;
 			let curTime = opts.startTime,
-				markers = $();
+				markers = [$('<tr></tr>'), $()];
 			
 			// Iterate and build time markers using increment
 			for (let i = 0; i < opts.markerAmount; i += 1) {
@@ -571,7 +585,8 @@
 				curTime = (i === 0) ? opts.startTime : curTime + opts.markerIncrement;
 				this.markerTags.push(curTime);
 				
-				markers = markers.add($(`<td><time>${this.getDisplayTime(curTime)}</time></td>`));
+				markers[0] = markers[0].append($(`<td><time>${this.getDisplayTime(curTime)}</time></td>`));
+				markers[1] = markers[1].add($('<td></td>'));
 				
 			}
 			
@@ -625,8 +640,7 @@
 						errHandler(new Error(errors.EVENT_OOR.msg), 'EVENT_OOR', this.error);
 					}
 					
-					let timeMarker = $(),
-						eventOverhang = false,
+					let eventOverhang = false,
 						pos = 0,
 						eventOffset = 0,
 						realWidth = 0,
@@ -636,17 +650,15 @@
 					
 					if (index >= 0) {
 						
-						timeMarker = $(this.timeMarkers[index]);
-						
-						// Check if a jqTimespaceEvent div already exists in this time marker
-						if (timeMarker.find('.jqTimespaceEvent').length > 0) {
-							sharingWith = timeMarker.find('.jqTimespaceEvent');
-						}
-						
 						// Find the position based on percentage of starting point to the increment amount
 						pos = (((start - markerTags[index]) / opts.markerIncrement) * opts.markerWidth);
-						event.css('left', pos + 'px').appendTo(timeMarker);
+						event.css('left', pos + 'px').appendTo(this.timeMarkers[index]);
 						eventOffset = Math.floor(event.offset().left);
+						
+						// Check if a jqTimespaceEvent div already exists in this time marker
+						if (event.siblings('.jqTimespaceEvent').length > 0) {
+							sharingWith = event.siblings('.jqTimespaceEvent');
+						}
 						
 						// Immediately invoke arrow function to return best width
 						eventElem.width((() => {
