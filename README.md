@@ -22,8 +22,14 @@ $('#timeContainer').timespace(options, callback);
 
 | Key | Description | Default |
 | :---: | --- | :---: |
+| data | The data to use for the Timespace instance (See below for more info), or a URL for loading the data object with jQuery.get() | null |
+| startTime | The starting time | 0 |
+| endTime | The ending time | 24 |
+| markerAmount | The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement) | 0 |
+| markerIncrement | The amount of time each marker spans | 1 |
+| markerWidth | The width of each time marker td element (0 to calculate from maxWidth and markerAmount) | 100 |
 | maxWidth | The maximum width for the Timespace container | 1000 |
-| maxHeight | The maximum height for the Timespace container | 320 |
+| maxHeight | The maximum height for the Timespace container | 280 |
 | navigateAmount | The amount of pixels to move the Timespace on navigation (0 to disable) | 400 |
 | dragXMultiplier | The multiplier to use with navigateAmount when dragging the time table horizontally | 1 |
 | dragYMultiplier | The multiplier to use with navigateAmount when dragging the time table vertically | 1 |
@@ -35,12 +41,6 @@ $('#timeContainer').timespace(options, callback);
 | use12HourTime | If using 12-Hour time (e.g. '2:00 PM' instead of '14:00') | true |
 | useTimeSuffix | If a suffix should be added to the displayed time (e.g. '12 AM' or '300 AD') - No time suffix is used if timeType is 'hour' and use12HourTime is false | true |
 | timeSuffixFunction | A function that receives the lowercase suffix string and returns a formatted string | s => ' ' + s[0].toUpperCase() + s[1].toUpperCase() |
-| startTime | The starting time | 0 |
-| endTime | The ending time | 24 |
-| markerAmount | The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement) | 0 |
-| markerIncrement | The amount of time each marker spans | 1 |
-| markerWidth | The width of each time marker td element (0 to calculate from maxWidth and markerAmount) | 100 |
-| data | The data to use for the Timespace instance (See below for more info), or a URL for loading the data object with jQuery.get() | null |
 
 ```js
 let data = {
@@ -63,7 +63,7 @@ let data = {
 			noDetails:   bool           // If the time event should not have a display (If noDetails and a description exists, it will be used for the event's title attribute)
 			class:       string         // The optional CSS class to use for the event's <p> element
 			callback:    Function       // The optional callback to run on event selection.
-			// The callback Cannot be an arrow function if calling any API methods within the callback
+			// The callback cannot be an arrow function if calling any API methods within the callback
 		}
 	]
 }
