@@ -62,8 +62,8 @@
 		}
 	.jqTimepsaceContainer .jqTimespaceLine {
 		z-index: 100;
-		box-sizing: border-box;
 		position: absolute;
+		box-sizing: border-box;
 		top: 0;
 		left: 50%;
 		margin: 0;
@@ -77,8 +77,8 @@
 	
 /* Timeline Table */
 .jqTimepsaceContainer table {
-	box-sizing: border-box;
 	position: relative;
+	box-sizing: border-box;
 	table-layout: fixed;
 	left: 0;
 	margin: 0;
@@ -105,6 +105,7 @@
 	}
 	.jqTimepsaceContainer thead td {
 		border-bottom: 1px solid #b4b4b4;
+		border-left: 1px dashed #d8d8d8;
 	}
 	.jqTimepsaceContainer .jqTimespaceHeading {
 		padding: 0 0.5rem;
@@ -138,11 +139,10 @@
 	
 /* Event Box */
 .jqTimepsaceContainer .jqTimespaceEvent {
-	box-sizing: border-box;
 	position: relative;
+	box-sizing: border-box;
 	margin: 0;
 	padding: 1rem 0 0 0;
-	white-space: nowrap;
 	text-align: left;
 }
 	.jqTimepsaceContainer .jqTimespaceEventRev {
@@ -170,16 +170,15 @@
 	.jqTimespaceEvent p {
 		z-index: 99;
 		position: relative;
-		box-sizing: border-box;
 		box-shadow: 3px 6px 5px -5px #999999;
 		overflow: hidden;
 		margin: 0;
 		border: 1px solid #c0c0c0;
 		border-radius: 0 0.6rem 0.6rem 0;
-		padding: 0.5rem;
-		height: 2.5rem;
-		line-height: 1.25rem;
+		padding: 0.3rem 0.5rem;
+		line-height: 1.6rem;
 		font-size: 1rem;
+		white-space: nowrap;
 		cursor: pointer;
 		transition: all 0.3s ease-in;
 		background: #ffffff;

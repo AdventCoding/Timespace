@@ -35,6 +35,7 @@
 		
 		$('#timelineClock').timespace({
 			
+			maxHeight: 275,
 			// Set the time suffix function for displaying as '12 A.M.'
 			timeSuffixFunction: s => ' ' + s[0].toUpperCase() + '.' + s[1].toUpperCase() + '.',
 			selectedEvent: -1,
@@ -49,8 +50,10 @@
 					{start: 6.50, title: 'Breakfast', description: 'Eat a healthy breakfast.'},
 					{start: 8, end: 10, title: 'Walk', description: 'Go for a walk.'},
 					{start: 14, title: 'Lunch', description: 'Eat a healthy lunch.'},
+					{start: 14, title: 'Call Bob', noDetails: true},
+					{start: 14.75, title: 'Confirm Appointment', noDetails: true},
 					{start: 14.75, title: 'Meeting', description: 'Meeting with Co-workers.'},
-					{start: 14.85, title: 'Meeting', description: 'Meeting with Co-workers.'},
+					{start: 14.75, title: 'Bring Supplies'},
 				]
 			},
 			
@@ -71,20 +74,11 @@
 				],
 				events: [
 					{start: 1440, end: 1700, title: 'Gutenberg\'s Printing Press'},
-					{start: 1440, end: 1700, title: 'Gutenberg\'s Printing Press'},
 					{start: 1517, end: 1648, title: 'The Reformation',
 						description: $('<p>The Reformation was a turning point in the history of the world. '
 							+ 'Martin Luther was a key player in this event as he stood up against Papal tyranny '
 							+ 'and church apostasy.</p><p>Many other reformers followed in the steps of Luther '
 							+ 'and followed the convictions of their hearts, even unto death.</p>')},
-					{start: 1648, title: 'Test'},
-					{start: 1773, title: 'Boston Tea Party'},
-					{start: 1774, title: 'Boston Tea Party2'},
-					{start: 1775, title: 'Boston Tea Party3'},
-					{start: 1776, title: 'Boston Tea Party4'},
-					{start: 1777, title: 'Boston Tea Party5'},
-					{start: 1778, title: 'Boston Tea Party6'},
-					{start: 1779, title: 'Boston Tea Party7'},
 					{start: 1775, end: 1783, title: 'American Revolution', description: 'Description:', callback: function () {
 						
 						this.container.find('.jqTimespaceDisplay section').append(

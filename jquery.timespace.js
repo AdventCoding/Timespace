@@ -220,7 +220,7 @@
 		
 		// Calculations
 		totalTime: 0,
-		markerTags: null,
+		markers: null,
 		shiftXEnabled: true,
 		shiftYEnabled: true,
 		shiftPosX: null,
@@ -298,7 +298,6 @@
 			this.options = Object.assign(opts, defaults, options);
 			this.data = opts.data || {};
 			this.totalTime = (opts.endTime - opts.startTime) || 1;
-			this.markerTags = [];
 			this.navInterval = {
 				dir: 'left',
 				timer: null,
@@ -363,11 +362,8 @@
 		 */
 		updateStaticData: function () {
 			
-			this.viewData.top = Math.ceil(this.tableContainer.offset().top);
 			this.viewData.height = Math.ceil(this.tableContainer.innerHeight());
-			this.viewData.offsetY = this.viewData.top + this.viewData.height;
 			this.viewData.halfY = Math.ceil(this.viewData.height / 2);
-			this.viewData.shiftOriginY = this.getTableBodyPosition();
 			this.viewData.tableOffsetY = this.timeTable.outerHeight() - this.tableContainer.outerHeight() - 1;
 			
 			return this;
@@ -381,11 +377,14 @@
 		updateDynamicData: function () {
 			
 			this.viewData.left = Math.ceil(this.tableContainer.offset().left);
+			this.viewData.offsetY = this.viewData.top + this.viewData.height;
+			this.viewData.top = Math.ceil(this.tableContainer.offset().top);
 			this.viewData.width = Math.ceil(this.tableContainer.innerWidth());
 			this.viewData.halfX = Math.ceil(this.viewData.width / 2);
 			this.viewData.heightOverhang = (this.tableContainer.outerHeight() > $(global).height() * 0.8);
 			this.viewData.offsetX = this.viewData.left + this.viewData.width;
 			this.viewData.shiftOriginX = this.getTablePosition();
+			this.viewData.shiftOriginY = this.getTableBodyPosition();
 			this.viewData.tableOffsetX = this.timeTable.outerWidth() - this.tableContainer.outerWidth() - 1;
 			
 			// Check if table is too small to shift
@@ -446,44 +445,31 @@
 		 */
 		buildTimeTable: function () {
 			
-			let opts = this.options,
-				headings = this.getTimeHeadings(),
-				markers = this.getTimeMarkers();
+			let opts = this.options;
 			
 			// Table width is used to force marker widths
 			this.viewData.tableWidth = opts.markerAmount * opts.markerWidth || 'auto';
-			this.timeTable = $(this.timeTable).width(this.viewData.tableWidth).appendTo(this.tableContainer);
+			this.timeTable = $(this.timeTable)
+				.width(this.viewData.tableWidth)
+				.appendTo(this.tableContainer);
 			this.timeTableLine = $(this.timeTableLine).appendTo(this.tableContainer);
 			this.timeTableHead = $(this.timeTableHead).appendTo(this.timeTable);
 			this.timeTableBody = $(this.timeTableBody)
 				.appendTo(this.timeTable)
 				.children('tr');
 			
-			if (headings.length === 0) {
-				this.timeTableHead.children('tr').css('display', 'none');
-			} else {
-				headings.appendTo(this.timeTableHead.children('tr'));
-			}
-			
-			markers[0].appendTo(this.timeTableHead);
-			this.timeMarkers = markers[1].appendTo(this.timeTableBody);
-			
-			// Update heading text widths for any wide headings
-			this.wideHeadings.each(function (i, elem) {
-				$(elem).data('textSpan', $(elem).children('span').outerWidth());
-			});
-			this.viewData.headerHeight = Math.ceil(this.timeTableHead.children('tr:first-child').innerHeight());
-			this.viewData.headerLineHeight = parseInt(this.timeTableHead.css('lineHeight'));
+			this.buildTimeHeadings()
+				.buildTimeMarkers();
 			
 			return this;
 			
 		},
 		
 		/**
-		 * Get the headings for the time markers
-		 * @return {Object} jQuery Collection
+		 * Build the heading titles for the time markers
+		 * @return {Object} The Plugin instance
 		 */
-		getTimeHeadings: function () {
+		buildTimeHeadings: function () {
 			
 			const opts = this.options;
 			
@@ -565,32 +551,50 @@
 				});
 			}
 			
-			return headings;
+			if (headings.length === 0) {
+				this.timeTableHead.children('tr').css('display', 'none');
+			} else {
+				headings.appendTo(this.timeTableHead.children('tr'));
+			}
+			
+			// Update heading text widths for any wide headings
+			this.wideHeadings.each(function (i, elem) {
+				$(elem).data('textSpan', $(elem).children('span').outerWidth());
+			});
+			this.viewData.headerHeight = Math.ceil(this.timeTableHead.innerHeight());
+			this.viewData.headerLineHeight = parseInt(this.timeTableHead.css('lineHeight'));
+			
+			return this;
 			
 		},
 		
 		/**
 		 * Build the time markers
-		 * @return {Object} jQuery Collection
+		 * @return {Object} The Plugin instance
 		 */
-		getTimeMarkers: function () {
+		buildTimeMarkers: function () {
 			
 			const opts = this.options;
 			let curTime = opts.startTime,
-				markers = [$('<tr></tr>'), $()];
+				markers = $('<tr></tr>');
+			
+			this.markers = [];
+			this.timeMarkers = $();
 			
 			// Iterate and build time markers using increment
 			for (let i = 0; i < opts.markerAmount; i += 1) {
 				
 				curTime = (i === 0) ? opts.startTime : curTime + opts.markerIncrement;
-				this.markerTags.push(curTime);
-				
-				markers[0] = markers[0].append($(`<td><time>${this.getDisplayTime(curTime)}</time></td>`));
-				markers[1] = markers[1].add($('<td></td>'));
+				this.markers.push(curTime);
+				this.timeMarkers = this.timeMarkers.add($('<td></td>'));
+				markers.append($(`<td><time>${this.getDisplayTime(curTime)}</time></td>`));
 				
 			}
 			
-			return markers;
+			markers.appendTo(this.timeTableHead);
+			this.timeMarkers.appendTo(this.timeTableBody);
+			
+			return this;
 			
 		},
 		
@@ -601,7 +605,7 @@
 		buildTimeEvents: function () {
 			
 			let opts = this.options,
-				markerTags = this.markerTags,
+				markers = this.markers,
 				events = $(),
 				rows = [],
 				curRow = 0,
@@ -625,7 +629,7 @@
 							? $.noop : v.callback.bind(this.API);
 					
 					const rounded = utility.roundToIncrement('floor', opts.markerIncrement, start),
-						index = markerTags.indexOf(rounded),
+						index = markers.indexOf(rounded),
 						event = $('<div class="jqTimespaceEvent"><span class="jqTimespaceEventBorder"></span></div>'),
 						eventElem = $(`<p${evtClass}><span>${title}</span></p>`).prependTo(event);
 					
@@ -651,7 +655,7 @@
 					if (index >= 0) {
 						
 						// Find the position based on percentage of starting point to the increment amount
-						pos = (((start - markerTags[index]) / opts.markerIncrement) * opts.markerWidth);
+						pos = (((start - markers[index]) / opts.markerIncrement) * opts.markerWidth);
 						event.css('left', pos + 'px').appendTo(this.timeMarkers[index]);
 						eventOffset = Math.floor(event.offset().left);
 						
@@ -666,23 +670,29 @@
 							const curWidth = eventElem.children('span').width(),
 								endWidth = (end) ? ((end - start) / opts.markerIncrement) * opts.markerWidth : 0;
 							
-							let padding = (parseInt(eventElem.css('paddingLeft'))
-									+ parseInt(eventElem.css('paddingRight'))) || 0,
-								tableLength = this.viewData.tableWidth + this.getTablePosition(true);
+							let styles = [
+									parseFloat(eventElem.css('borderLeftWidth')) || 0,
+									parseFloat(eventElem.css('borderRightWidth')) || 0,
+									parseFloat(eventElem.css('paddingLeft')) || 0,
+									parseFloat(eventElem.css('paddingRight')) || 0,
+								],
+								extra = styles.reduce((t, v) => t + v), // Add all style values
+								tableLength = this.viewData.tableWidth + this.getTablePosition(true),
+								result = opts.markerWidth - extra;
 							
-							eventOverhang = (tableLength < eventOffset + curWidth + padding);
+							eventOverhang = (tableLength < eventOffset + curWidth + extra);
 							
 							if (eventOverhang) {
-								return curWidth;
+								result = curWidth; // Text width
 							} else if (width) {
-								return width; // User-defined width
-							} else if (curWidth > endWidth && curWidth > opts.markerWidth) {
-								return curWidth; // Text width
-							} else if (endWidth > opts.markerWidth) {
-								return endWidth - padding; // Timespan width
-							} else {
-								return opts.markerWidth; // Default marker width
+								result = width - extra; // User-defined width
+							} else if (curWidth > endWidth - extra && curWidth > result) {
+								result = curWidth; // Text width
+							} else if (endWidth - extra > result) {
+								result = endWidth - extra; // Timespan width
 							}
+							
+							return result;
 							
 						})())
 							.data({
@@ -697,7 +707,7 @@
 						events = events.add(eventElem);
 						realWidth = eventElem.outerWidth();
 						event.width(realWidth);
-						span = eventOffset + Math.floor(event.outerWidth()) - 2;
+						span = eventOffset + Math.floor(event.outerWidth());
 						
 						if (noDetails) {
 							
@@ -859,28 +869,37 @@
 			
 			// Navigation Events
 			this.navLeft.on('mousedown', () => {
-				if (this.options.navigateAmount > 0) { this.setNavInterval('left'); }
+				
+				if (this.options.navigateAmount > 0) {
+					
+					this.updateDynamicData()
+						.setNavInterval('left');
+					
+				}
 			});
 			this.navRight.on('mousedown', () => {
-				if (this.options.navigateAmount > 0) { this.setNavInterval('right'); }
+				if (this.options.navigateAmount > 0) {
+					
+					this.updateDynamicData()
+						.setNavInterval('right');
+					
+				}
 			});
 			
 			// Time Table Events
-			this.timeTable.on('mousedown', (e) => {
+			this.timeTable.add(this.timeTableLine).on('mousedown', (e) => {
 				
 				if (this.shiftXEnabled || this.shiftYEnabled) {
 					
-					this.viewData.shiftOriginX = this.getTablePosition();
-					this.viewData.shiftOriginY = this.getTableBodyPosition();
 					this.lastMousePosX = e.pageX;
 					this.lastMousePosY = e.pageY;
-					this.setTimeShiftState(true);
+					this.updateDynamicData()
+						.setTimeShiftState(true);
 					$(global).on('mousemove.jqTimespace', this.timeShift.bind(this));
 					
 				}
 				
 			});
-			this.timeTableLine.on('mousedown', (e) => { this.timeTable.trigger('mousedown', [e]); });
 			
 			// Event Marker Events
 			this.timeEvents.each(function () {
@@ -895,7 +914,8 @@
 							&& Math.abs(ts.viewData.shiftOriginX - ts.getTablePosition()) < 10
 							&& Math.abs(ts.viewData.shiftOriginY - ts.getTableBodyPosition()) < 10) {
 							
-							ts.displayEvent(elem, preventScroll);
+							ts.updateDynamicData()
+								.displayEvent(elem, preventScroll);
 							
 						}
 						
@@ -915,7 +935,8 @@
 					for (let i = -1; i >= len; i -= 1) {
 						if (!ts.timeEvents.eq(index + i).data('noDetails')) {
 							
-							ts.displayEvent(ts.timeEvents.eq(index + i));
+							ts.updateDynamicData()
+								.displayEvent(ts.timeEvents.eq(index + i));
 							break;
 							
 						}
@@ -931,16 +952,15 @@
 				// Check for the next event that doesn't have noDetails
 				if (index >= 0) {
 					for (let i = 1; i <= len; i += 1) {
-						
 						// If reached the end of collection, start again at 0 (index + i === 0)
 						if (index + i === len) { index = -i; }
 						if (!ts.timeEvents.eq(index + i).data('noDetails')) {
 							
-							ts.displayEvent(ts.timeEvents.eq(index + i));
+							ts.updateDynamicData()
+								.displayEvent(ts.timeEvents.eq(index + i));
 							break;
 							
 						}
-						
 					}
 				}
 				
