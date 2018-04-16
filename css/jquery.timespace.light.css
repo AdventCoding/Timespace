@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Nanum+Gothic');
 
-/* Time Table Transition */
+/* CSS Transition */
 .jqTimespaceAnimated {
 	transition: all 1.2s cubic-bezier(0.29, 0.575, 0.465, 1);
 }
@@ -13,17 +13,17 @@
 	background: #ffffff;
 }
 
-/* Main and Table Containers */
-.jqTimepsaceContainer, .jqTimepsaceContainer .jqTimespaceTableContainer {
+/* Containers */
+.jqTimepsaceContainer,
+.jqTimepsaceContainer .jqTimespaceDataContainer {
 	position: relative;
-	box-sizing: border-box;
 	overflow: hidden;
 	margin: 0 auto;
 	padding: 0;
 	color: #000000;
 	font-family: 'Nanum Gothic', sans-serif;
 }
-	.jqTimepsaceContainer .jqTimespaceTableContainer {
+	.jqTimepsaceContainer .jqTimespaceDataContainer {
 		box-shadow: 0 6px 5px -5px #c4c4c4;
 		border: 1px solid #b4b4b4;
 		background: #ffffff url('../images/timespace.line.light.png') bottom 0 left 0 repeat-x;
@@ -33,22 +33,22 @@
 
 /* Navigation and Line Guide */
 .jqTimepsaceContainer .jqTimespaceLeft,
-	.jqTimepsaceContainer .jqTimespaceRight {
-		z-index: 100;
-		position: absolute;
-		bottom: 30%;
-		margin: 0;
-		border: 1px solid #a8a8a8;
-		padding: 0.1rem 0.5rem;
-		color: #573e29;
-		font-size: 1.6rem;
-		line-height: 2rem;
-		text-align: center;
-		cursor: pointer;
-		background: #ffffff;
-		opacity: 0.7;
-		transition: background 0.4s ease-in, opacity 0.4s ease-in;
-	}
+.jqTimepsaceContainer .jqTimespaceRight {
+	z-index: 2;
+	position: absolute;
+	bottom: 30%;
+	margin: 0;
+	border: 1px solid #a8a8a8;
+	padding: 0.1rem 0.5rem;
+	color: #573e29;
+	font-size: 1.6rem;
+	line-height: 2rem;
+	text-align: center;
+	cursor: pointer;
+	background: #ffffff;
+	opacity: 0.7;
+	transition: background 0.4s ease-in, opacity 0.4s ease-in;
+}
 	.jqTimepsaceContainer .jqTimespaceLeft {
 		left: 0;
 	}
@@ -56,12 +56,12 @@
 		right: 0;
 	}
 	.jqTimepsaceContainer .jqTimespaceLeft:hover,
-		.jqTimepsaceContainer .jqTimespaceRight:hover {
-			background: #fff9f5;
-			opacity: 1;
-		}
+	.jqTimepsaceContainer .jqTimespaceRight:hover {
+		background: #fff9f5;
+		opacity: 1;
+	}
 	.jqTimepsaceContainer .jqTimespaceLine {
-		z-index: 100;
+		z-index: 2;
 		position: absolute;
 		box-sizing: border-box;
 		top: 0;
@@ -75,69 +75,80 @@
 		cursor: move;
 	}
 	
-/* Timeline Table */
-.jqTimepsaceContainer table {
+/* Timeline */
+.jqTimepsaceContainer aside {
 	position: relative;
-	box-sizing: border-box;
 	table-layout: fixed;
 	left: 0;
 	margin: 0;
-	border-spacing: 0;
 	padding: 0;
 	line-break: strict;
 	cursor: move;
 }
-	.jqTimepsaceContainer tr {
+	.jqTimepsaceContainer header {
+		z-index: 3;
 		position: relative;
-		height: 100%;
-	}
-	.jqTimepsaceContainer thead tr {
-		z-index: 2;
 		background: #ffffff;
 	}
-	.jqTimepsaceContainer thead th {
-		box-sizing: border-box;
-		margin: 0;
-		border: 1px solid #b4b4b4;
-		border-collapse: collapse;
-		padding: 0.5rem 0;
-		text-align: center;
-	}
-	.jqTimepsaceContainer thead td {
-		border-bottom: 1px solid #b4b4b4;
-		border-left: 1px dashed #d8d8d8;
-	}
-	.jqTimepsaceContainer .jqTimespaceHeading {
-		padding: 0 0.5rem;
-	}
-	.jqTimepsaceContainer thead th.jqTimespaceDummySpan {
-		background: #ececec;
-		opacity: 0.4;
-	}
 	.jqTimepsaceContainer .jqTimespaceTitleClamp {
-		z-index: 3;
+		z-index: 4;
 		display: block;
 		position: absolute;
 		left: 50%;
-		transform: translateX(-50%);
+		transform: translateX(-50%) translateY(-50%);
 		opacity: 0;
 	}
-	.jqTimepsaceContainer tbody tr {
-		top: 0;
+	.jqTimepsaceContainer header > div {
+		display: flex;
+		position: relative;
+		box-sizing: border-box;
+		margin: 0;
+		border-bottom: 1px solid #b4b4b4;
+		text-align: center;
+	}
+	.jqTimepsaceContainer header > div:last-child {
+		border-bottom: 1px solid #b4b4b4;
+		text-align: left;
+	}
+	.jqTimepsaceContainer header h1,
+	.jqTimepsaceContainer header time,
+	.jqTimepsaceContainer header .jqTimespaceDummySpan {
+		display: block;
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0.5rem 0;
+	}
+	.jqTimepsaceContainer header time {
+		padding: 0.2rem 0;
+	}
+	.jqTimepsaceContainer header h1 {
+		font-size: 1.2rem;
+	}
+	.jqTimepsaceContainer header h1:not(:first-child),
+	.jqTimepsaceContainer header .jqTimespaceDummySpan:not(:first-child) {
+		border-left: 1px solid #d8d8d8;
+	}
+	.jqTimepsaceContainer header .jqTimespaceDummySpan {
+		background: #ececec;
+		opacity: 0.4;
+	}
+	.jqTimepsaceContainer header time:not(:first-child) {
+		border-left: 1px dashed #d8d8d8;
+	}
+	.jqTimepsaceContainer aside section {
 		z-index: 1;
+		display: flex;
+		position: relative;
+		min-height: 100%;
 	}
-	.jqTimepsaceContainer tbody td {
-		border-right: 1px dashed #d8d8d8;
-		border-collapse: collapse;
-		height: 100%;
-		min-height: 6.25rem;
-		vertical-align: top;
+	.jqTimepsaceContainer aside .jqTimespaceColumn {
+		box-sizing: border-box;
 	}
-	.jqTimepsaceContainer tbody td .jqTimespaceEvent:last-of-type {
-		margin-bottom: 20px;
+	.jqTimepsaceContainer aside .jqTimespaceColumn:not(:first-child) {
+		border-left: 1px dashed #d8d8d8;
 	}
 	
-/* Event Box */
+/* Event Boxes */
 .jqTimepsaceContainer .jqTimespaceEvent {
 	position: relative;
 	box-sizing: border-box;
@@ -145,6 +156,9 @@
 	padding: 1rem 0 0 0;
 	text-align: left;
 }
+	.jqTimepsaceContainer .jqTimespaceEvent:last-of-type {
+		margin-bottom: 20px;
+	}
 	.jqTimepsaceContainer .jqTimespaceEventRev {
 		text-align: right;
 	}
@@ -168,8 +182,6 @@
 		border-right: 1px dashed #363636;
 	}
 	.jqTimespaceEvent p {
-		z-index: 99;
-		position: relative;
 		box-shadow: 3px 6px 5px -5px #999999;
 		overflow: hidden;
 		margin: 0;
@@ -186,7 +198,8 @@
 	.jqTimespaceEventRev p {
 		border-radius: 0.6rem 0 0 0.6rem;
 	}
-	.jqTimespaceEvent p:hover, .jqTimespaceEvent .jqTimespaceEventSelected {
+	.jqTimespaceEvent p:hover,
+	.jqTimespaceEvent .jqTimespaceEventSelected {
 		box-shadow: 3px 8px 10px -10px #999999;
 		background: #fffaf2;
 	}
@@ -208,7 +221,7 @@
 		border: none;
 	}
 	
-/* Event Display */
+/* Display Box */
 .jqTimespaceDisplay {
 	box-sizing: border-box;
 	box-shadow: 0 6px 5px -5px #999999;
@@ -227,7 +240,8 @@
 		position: relative;
 		align-items: center;
 	}
-	.jqTimespaceDisplay .jqTimespaceDisplayLeft, .jqTimespaceDisplay .jqTimespaceDisplayRight {
+	.jqTimespaceDisplay .jqTimespaceDisplayLeft,
+	.jqTimespaceDisplay .jqTimespaceDisplayRight {
 		width: 0.9rem;
 		height: 1.3rem;
 		background: #8a5541;
@@ -242,8 +256,8 @@
 		clip-path: polygon(0 0%, 0 100%, 100% 50%);
 	}
 	.jqTimespaceDisplay .jqTimespaceDisplayLeft:hover,
-		.jqTimespaceDisplay .jqTimespaceDisplayRight:hover {
-			background: #c56a45;
+	.jqTimespaceDisplay .jqTimespaceDisplayRight:hover {
+		background: #c56a45;
 	}
 	.jqTimespaceDisplay .jqTimespaceTimeframe {
 		display: inline-block;

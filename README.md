@@ -23,20 +23,20 @@ $('#timeContainer').timespace(options, callback);
 | Key | Description | Default |
 | :---: | --- | :---: |
 | data | The data to use for the Timespace instance (See below for more info), or a URL for loading the data object with jQuery.get() | null |
-| startTime | The starting time | 0 |
-| endTime | The ending time | 24 |
+| startTime | The starting time of the time table | 0 |
+| endTime | The ending time of the time table | 24 |
 | markerAmount | The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement) | 0 |
 | markerIncrement | The amount of time each marker spans | 1 |
 | markerWidth | The width of each time marker td element (0 to calculate from maxWidth and markerAmount) | 100 |
-| maxWidth | The maximum width for the Timespace container | 1000 |
-| maxHeight | The maximum height for the Timespace container | 280 |
-| navigateAmount | The amount of pixels to move the Timespace on navigation (0 to disable) | 400 |
+| maxWidth | The maximum width for the time table container | 1000 |
+| maxHeight | The maximum height for the time table container | 280 |
+| navigateAmount | The amount of pixels to move the time table on navigation (0 to disable) | 400 |
 | dragXMultiplier | The multiplier to use with navigateAmount when dragging the time table horizontally | 1 |
 | dragYMultiplier | The multiplier to use with navigateAmount when dragging the time table vertically | 1 |
 | selectedEvent | The index number of the event to start on (0 for first event, -1 to disable) | 0 |
 | shiftOnEventSelect | If the time table should shift on event selection | true |
-| scrollToDisplayBox | If the window should scroll to the event display box on event selection (only applies if the time table height is greater than the window height, and if the event has a description) | true |
-| customEventDisplay | The jQuery Object of the element to use for the event display box | null |
+| scrollToDisplayBox | If the window should scroll to the display box on event selection (only applies if the time table height is greater than the window height, and if the event has a description) | true |
+| customEventDisplay | The jQuery Object of the element to use for the display box | null |
 | timeType | Use 'hour' or 'date' for the type of time being used. Note: If using 'date', 0 AD will display as 1 AD | 'hour' |
 | use12HourTime | If using 12-Hour time (e.g. '2:00 PM' instead of '14:00') | true |
 | useTimeSuffix | If a suffix should be added to the displayed time (e.g. '12 AM' or '300 AD') - No time suffix is used if timeType is 'hour' and use12HourTime is false | true |
