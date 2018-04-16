@@ -231,6 +231,8 @@
 		shiftPosY: null,
 		shiftDirX: '=',
 		shiftDirY: '=',
+		shiftDiffX: 0,
+		shiftDiffY: 0,
 		lastMousePosX: 0,
 		lastMousePosY: 0,
 		navInterval: null,
@@ -803,7 +805,7 @@
 				if (this.timeTable.hasClass(classes.shifting)) {
 					
 					this.setTimeShiftState(false);
-					this.timeShift(false);
+					this.timeShift(null, null, true, true);
 					
 				}
 				
@@ -1154,13 +1156,13 @@
 					
 				}
 				
-				this.timeShift(false);
+				this.timeShift(null, null, true);
 				
 			} else {
 				
 				// If direction is left, the time table is shifted to the right
 				x = (x === 'left') ? '>' : '<';
-				this.timeShift(false, x);
+				this.timeShift(null, x, true);
 				
 			}
 			
@@ -1214,9 +1216,15 @@
 		 * Shift the time table
 		 * @param {Object|bool} e The jQuery Event object or false if finished
 		 * @param {string} navX The x direction to shift '<' or '>'
+		 * @param {bool} finished If the shift is finished
+		 * @param {bool} toss If the time table should be tossed on quick movement
 		 * @return {Object} The Plugin instance
 		 */
-		timeShift: function (e, navX) {
+		timeShift: function (e, navX, finished, toss) {
+			
+			if (e === null) {
+				e = { pageX: 0, pageY: 0 };
+			}
 			
 			const opts = this.options,
 				canShiftX = this.shiftXEnabled,
@@ -1224,12 +1232,9 @@
 			
 			if (!canShiftX && !canShiftY) { return this; }
 			
-			let finished = (e === false),
-				touch = (!finished) ? utility.getTouchCoords(e) : null,
-				x = (finished) ? 0 :
-					(touch) ? touch.x : e.pageX,
-				y = (finished) ? 0 :
-					(touch) ? touch.y : e.pageY;
+			let touch = (!finished) ? utility.getTouchCoords(e) : null,
+				x = (touch) ? touch.x : e.pageX,
+				y = (touch) ? touch.y : e.pageY;
 			
 			if (navX) {
 				
@@ -1240,7 +1245,7 @@
 			}
 			if (canShiftX) {
 				
-				this.timeShiftPos('X')
+				this.timeShiftPos('X', toss)
 					.updateCurWideHeading(
 						(this.shiftPosX) ? parseInt(this.timeTable.css('left')) - this.shiftPosX : 0
 					)
@@ -1249,7 +1254,7 @@
 			}
 			if (canShiftY) {
 				
-				this.timeShiftPos('Y')
+				this.timeShiftPos('Y', toss)
 					.timeShiftCache('Y', y, finished);
 				
 			}
@@ -1261,9 +1266,10 @@
 		/**
 		 * Apply the new position to the time table
 		 * @param {string} plane 'X' or 'Y'
+		 * @param {bool} toss If the time table should be tossed on quick movement
 		 * @return {Object} The Plugin instance
 		 */
-		timeShiftPos: function (plane) {
+		timeShiftPos: function (plane, toss) {
 			
 			if (this['shiftPos' + plane] === null) { return this; }
 			
@@ -1271,8 +1277,12 @@
 				target = (isX) ? 'timeTable' : 'timeTableBody',
 				shiftPos = 'shiftPos' + plane,
 				shiftDir = 'shiftDir' + plane,
+				shiftDiff = 'shiftDiff' + plane,
 				tableOffset = 'tableOffset' + plane,
 				css = (isX) ? 'left' : 'top';
+			
+			// Add to the final shift position if tossing
+			if (toss) { this[shiftPos] += this[shiftDiff] * 10; }
 			
 			// Time table must be moved within bounds
 			if ((this[shiftDir] === '<' && this[shiftPos] >= -this.viewData[tableOffset])
@@ -1311,6 +1321,7 @@
 				lastMousePos = 'lastMousePos' + plane,
 				shiftPos = 'shiftPos' + plane,
 				shiftDir = 'shiftDir' + plane,
+				shiftDiff = 'shiftDiff' + plane,
 				dragMultiplier = `drag${plane}Multiplier`,
 				posMethod = (isX) ? 'getTablePosition' : 'getTableBodyPosition';
 			
@@ -1319,6 +1330,7 @@
 			if (val !== this[lastMousePos] && !finished) {
 				
 				dir = val - this[lastMousePos];
+				this[shiftDiff] = dir;
 				this[shiftPos] = this[posMethod]() + (dir * this.options[dragMultiplier]);
 				this[shiftDir] = (dir < 0) ? '<' : '>';
 				this[lastMousePos] = val;
