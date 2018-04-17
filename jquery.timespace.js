@@ -556,8 +556,8 @@
 				events = $(),
 				rows = [],
 				curRow = 0,
-				paddingOrigin = 0,
-				paddingTop = 0;
+				marginOrigin = 0,
+				marginTop = 0;
 			
 			if (this.data.events) {
 				this.data.events.forEach((v, i) => {
@@ -678,8 +678,8 @@
 						if (i === 0) {
 							
 							rows.push(span);
-							paddingOrigin = parseInt(event.css('paddingTop'));
-							paddingTop = Math.floor(paddingOrigin + eventElem.outerHeight());
+							marginOrigin = parseInt(event.css('marginTop'));
+							marginTop = Math.floor(marginOrigin + eventElem.outerHeight());
 							
 						} else {
 							
@@ -688,7 +688,7 @@
 								// Event is sharing the same td with another event
 								// Start on the next row of the shared element
 								// And start with the basic padding
-								sharedSpace = paddingOrigin;
+								sharedSpace = marginOrigin;
 								curRow += 1;
 								
 								// Check if rows array needs expanding
@@ -706,13 +706,13 @@
 									rows[row] = span;
 									curRow = row;
 									
-									// If first row, the normal paddingTop will be used
+									// If first row, the normal marginTop will be used
 									// Otherwise, calculate the padding for the current row
 									if (row > 0) {
 										if (sharingWith) {
-											event.css('paddingTop', sharedSpace);
+											event.css('marginTop', sharedSpace);
 										} else {
-											event.css('paddingTop', row * paddingTop + paddingOrigin);
+											event.css('marginTop', row * marginTop + marginOrigin);
 										}
 									}
 									
@@ -724,11 +724,11 @@
 									if (sharingWith) {
 										
 										// Cache the amount of padding for next row check
-										sharedSpace += paddingTop;
-										event.css('paddingTop', sharedSpace);
+										sharedSpace += marginTop;
+										event.css('marginTop', sharedSpace);
 										
 									} else {
-										event.css('paddingTop', (row + 1) * paddingTop + paddingOrigin);
+										event.css('marginTop', (row + 1) * marginTop + marginOrigin);
 									}
 									
 									// If on last cached row, settle with the next row space

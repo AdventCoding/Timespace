@@ -152,8 +152,8 @@
 .jqTimepsaceContainer .jqTimespaceEvent {
 	position: relative;
 	box-sizing: border-box;
-	margin: 0;
-	padding: 1rem 0 0 0;
+	margin: 1rem 0 0 0;
+	padding: 0;
 	text-align: left;
 }
 	.jqTimepsaceContainer .jqTimespaceEvent:last-of-type {
