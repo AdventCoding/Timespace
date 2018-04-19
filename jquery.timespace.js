@@ -50,9 +50,18 @@
 	 * @property {TimeEvent[]]} events The array of event objects
 	 */
 	/**
+	 * The ControlText Object Type
+	 * @typedef {Object} ControlText
+	 * @property {string} navLeft The title text for the left navigation arrow
+	 * @property {string} navRight The title text for the right navigation arrow
+	 * @property {string} drag The title text for the time table
+	 * @property {string} eventLeft The title text for the display box previous event arrow
+	 * @property {string} eventRight The title text for the display box next event arrow
+	 */
+	/**
 	* The Default Options Object Type
 	* @typedef {Object} Defaults
-	* @property {Data} data The data to use for the Timespace instance, or a URL for loading the data object with jQuery.get()
+	* @property {Data|string|null} data The data to use for the Timespace instance, or a URL for loading the data object with jQuery.get()
 	* @property {number} startTime The starting time of the time table
 	* @property {number} endTime The ending time of the time table
 	* @property {number} markerAmount The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement)
@@ -73,6 +82,7 @@
 	* @property {bool} useTimeSuffix If a suffix should be added to the displayed time (e.g. '12 AM' or '300 AD')
 		No time suffix is used if timeType is hour and use12HourTime is false
 	* @property {Function} timeSuffixFunction A function that receives the lowercase suffix string and returns a formatted string
+	* @property {ControlText} controlText The object of title texts for the various control elements
 	*/
 	const defaults = {
 		data: null,
@@ -94,6 +104,13 @@
 		use12HourTime: true,
 		useTimeSuffix: true,
 		timeSuffixFunction: s => ' ' + s[0].toUpperCase() + s[1].toUpperCase(),
+		controlText: {
+			navLeft: 'Move Left',
+			navRight: 'Move Right',
+			drag: 'Drag',
+			eventLeft: 'Previous Event',
+			eventRight: 'Next Event',
+		},
 	};
 	
 	/** The error constants for error handling */
@@ -245,8 +262,8 @@
 		error: '<div class="jqTimespaceErrors"></div>',
 		titleClamp: '<div class="jqTimespaceTitleClamp"></div>',
 		timeTableLine: '<div class="jqTimespaceLine"></div>',
-		navLeft: '<div class="jqTimespaceLeft" title="Move Left">&lt;</div>',
-		navRight: '<div class="jqTimespaceRight" title="Move Right">&gt;</div>',
+		navLeft: '<div class="jqTimespaceLeft">&lt;</div>',
+		navRight: '<div class="jqTimespaceRight">&gt;</div>',
 		dataContainer: '<div class="jqTimespaceDataContainer"></div>',
 		timeTable: '<aside></aside>',
 		timeTableHead: '<header></header>',
@@ -256,8 +273,8 @@
 		displayTimeDiv: '<div class="jqTimespaceDisplayTime"></div>',
 		displayTime: '<time></time>',
 		displayBody: '<section></section>',
-		displayLeft: '<div class="jqTimespaceDisplayLeft" title="Previous Event"></div>',
-		displayRight: '<div class="jqTimespaceDisplayRight" title="Next Event"></div>',
+		displayLeft: '<div class="jqTimespaceDisplayLeft"></div>',
+		displayRight: '<div class="jqTimespaceDisplayRight"></div>',
 		timeMarkers: null,
 		timeEvents: null,
 		wideHeadings: null,
@@ -321,8 +338,12 @@
 					maxHeight: opts.maxHeight,
 				})
 				.appendTo(this.container);
-			this.navLeft = $(this.navLeft).appendTo(this.dataContainer);
-			this.navRight = $(this.navRight).appendTo(this.dataContainer);
+			this.navLeft = $(this.navLeft)
+				.attr('title', opts.controlText.navLeft)
+				.appendTo(this.dataContainer);
+			this.navRight = $(this.navRight)
+				.attr('title', opts.controlText.navRight)
+				.appendTo(this.dataContainer);
 			this.titleClamp = $(this.titleClamp).appendTo(this.dataContainer);
 			
 			// Values are updated once elements are built
@@ -391,12 +412,17 @@
 			
 			// Time table width is used to force marker widths
 			this.viewData.tableWidth = opts.markerAmount * opts.markerWidth || 'auto';
-			this.timeTableLine = $(this.timeTableLine).appendTo(this.dataContainer);
+			this.timeTableLine = $(this.timeTableLine)
+				.attr('title', opts.controlText.drag)
+				.appendTo(this.dataContainer);
 			this.timeTable = $(this.timeTable)
 				.width(this.viewData.tableWidth)
 				.appendTo(this.dataContainer);
-			this.timeTableHead = $(this.timeTableHead).appendTo(this.timeTable);
+			this.timeTableHead = $(this.timeTableHead)
+				.attr('title', opts.controlText.drag)
+				.appendTo(this.timeTable);
 			this.timeTableBody = $(this.timeTableBody)
+				.attr('title', opts.controlText.drag)
 				.appendTo(this.timeTable);
 			
 			this.buildTimeHeadings()
@@ -776,9 +802,13 @@
 					.css('maxWidth', opts.maxWidth);
 			this.displayTitle = $(this.displayTitle).appendTo(this.display);
 			this.displayTimeDiv = $(this.displayTimeDiv).appendTo(this.display);
-			this.displayLeft = $(this.displayLeft).appendTo(this.displayTimeDiv);
+			this.displayLeft = $(this.displayLeft)
+				.attr('title', opts.controlText.eventLeft)
+				.appendTo(this.displayTimeDiv);
 			this.displayTime = $(this.displayTime).appendTo(this.displayTimeDiv);
-			this.displayRight = $(this.displayRight).appendTo(this.displayTimeDiv);
+			this.displayRight = $(this.displayRight)
+				.attr('title', opts.controlText.eventRight)
+				.appendTo(this.displayTimeDiv);
 			this.displayBody = $(this.displayBody).appendTo(this.display);
 			
 			return this;
@@ -1514,13 +1544,21 @@
 			// The ID used for the isnt array to target the correct instance
 			id: 0,
 			
-			// Get the instance container
+			// Element Getters
 			get container () {
 				
 				const me = inst[this.id];
 				
 				if (!utility.checkInstance(me)) { return this; }
 				return me.container;
+				
+			},
+			get event () {
+				
+				const me = inst[this.id];
+				
+				if (!utility.checkInstance(me)) { return this; }
+				return (me.curEvent) ? me.curEvent.parent('div') : null;
 				
 			},
 			

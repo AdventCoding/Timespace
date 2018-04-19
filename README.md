@@ -22,7 +22,7 @@ $('#timeContainer').timespace(options, callback);
 
 | Key | Description | Default |
 | :---: | --- | :---: |
-| data | The data to use for the Timespace instance (See below for more info), or a URL for loading the data object with jQuery.get() | null |
+| data | The data to use for the Timespace instance (See data variable below), or a URL for loading the data object with jQuery.get() | null |
 | startTime | The starting time of the time table | 0 |
 | endTime | The ending time of the time table | 24 |
 | markerAmount | The amount of time markers to use (0 to calculate from startTime, endTime, and markerIncrement) | 0 |
@@ -40,7 +40,8 @@ $('#timeContainer').timespace(options, callback);
 | timeType | Use 'hour' or 'date' for the type of time being used. Note: If using 'date', 0 AD will display as 1 AD | 'hour' |
 | use12HourTime | If using 12-Hour time (e.g. '2:00 PM' instead of '14:00') | true |
 | useTimeSuffix | If a suffix should be added to the displayed time (e.g. '12 AM' or '300 AD') - No time suffix is used if timeType is 'hour' and use12HourTime is false | true |
-| timeSuffixFunction | A function that receives the lowercase suffix string and returns a formatted string | s => ' ' + s[0].toUpperCase() + s[1].toUpperCase() |
+| timeSuffixFunction | The function that receives the lowercase suffix string and returns a formatted string | s => ' ' + s[0].toUpperCase() + s[1].toUpperCase() |
+| controlText | The object of title texts for the various control elements | (See controlText variable below) |
 
 ```js
 let data = {
@@ -48,25 +49,33 @@ let data = {
 		{
 			// Important: The start and end times for the headings are rounded to the increment
 			//   e.g. If my increment is 10, a start time of 35 will round to 40, and 34 will round to 30.
-			start: number // The start time for the heading
-			end:   number // The end time for the heading / Optional only for the last heading
-			title: string // The text for the heading
+			start: number, // The start time for the heading
+			end:   number, // The end time for the heading / Optional only for the last heading
+			title: string, // The text for the heading
 		}
 	],
 	events: [
 		{
-			start:       number         // The start time for the event
-			end:         number         // The optional end time for the event
-			title:       string         // The text for the event title
-			description: string||jQuery // The optional text or jQuery Object for the event description
-			width:       number         // The optional width for the event box
-			noDetails:   bool           // If the time event should not have a display (If noDetails and a description exists, it will be used for the event's title attribute)
-			class:       string         // The optional CSS class to use for the event's <p> element
-			callback:    Function       // The optional callback to run on event selection.
+			start:       number,         // The start time for the event
+			end:         number,         // The optional end time for the event
+			title:       string,         // The text for the event title
+			description: string||jQuery, // The optional text or jQuery Object for the event description
+			width:       number,         // The optional width for the event box
+			noDetails:   bool,           // If the time event should not have a display (If noDetails and a description exists, it will be used for the event's title attribute)
+			class:       string,         // The optional CSS class to use for the event's <p> element
+			callback:    Function,       // The optional callback to run on event selection.
 			// The callback cannot be an arrow function if calling any API methods within the callback
 		}
 	]
-}
+};
+
+let controlText = {
+	navLeft: 'Move Left',
+	navRight: 'Move Right',
+	drag: 'Drag',
+	eventLeft: 'Previous Event',
+	eventRight: 'Next Event',
+};
 ```
 
 ### Methods & Properties
@@ -75,29 +84,37 @@ These methods and properties can only be accessed from within a callback functio
 
 ### .shiftOnEventSelect
 
-To set the shiftOnEventSelect option inside a callback function:
+To set the shiftOnEventSelect option from within a callback function:
 ```js
 this.shiftOnEventSelect = true;
 ```
 
 ### .shiftOnEventSelect
 
-To set the navigateAmount option inside a callback function:
+To set the navigateAmount option from within a callback function:
 ```js
 this.navigateAmount = true;
 ```
 
 ### .container
 
-To get the jQuery container object of the Timespace instance inside a callback function:
+To get the jQuery container element of the Timespace instance from within a callback function:
 ```js
 let myContainer = this.container;
+```
+
+### .event
+
+To get the currently selected event's jQuery div element of the Timespace instance from within a callback function:
+Note: Returns null if no event is currently selected.
+```js
+let eventBox = this.event;
 ```
 
 ### .navigateTime(direction, duration)
 
 Navigate the time table in a direction or by a specified amount.
- - direction : 'left', 'right', or a positive or negative amount
+ - direction : 'left', 'right', or a positive or negative amount of pixels
  - duration : The amount of seconds for the time table to animate its position
 
 ## License
