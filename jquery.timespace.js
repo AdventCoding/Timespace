@@ -835,27 +835,30 @@
 			});
 			
 			// Time Table Events
-			this.timeTable.add(this.timeTableLine).on('mousedown touchstart', (e) => {
-				
-				e.preventDefault();
-				let touch = utility.getTouchCoords(e);
-				
-				if (this.shiftXEnabled || this.shiftYEnabled) {
+			this.timeTable
+				.add(this.timeTableLine)
+				.add(this.titleClamp)
+				.on('mousedown touchstart', (e) => {
 					
-					this.lastMousePosX = (touch) ? touch.x : e.pageX;
-					this.lastMousePosY = (touch) ? touch.y : e.pageY;
-					this.updateDynamicData()
-						.setTimeShiftState(true);
-					$(global).on('mousemove.jqTimespace touchmove.jqTimespace', (e) => {
-						
-						e.preventDefault();
-						this.timeShift(e);
-						
-					});
+					e.preventDefault();
+					let touch = utility.getTouchCoords(e);
 					
-				}
+					if (this.shiftXEnabled || this.shiftYEnabled) {
+						
+						this.lastMousePosX = (touch) ? touch.x : e.pageX;
+						this.lastMousePosY = (touch) ? touch.y : e.pageY;
+						this.updateDynamicData()
+							.setTimeShiftState(true);
+						$(global).on('mousemove.jqTimespace touchmove.jqTimespace', (e) => {
+							
+							e.preventDefault();
+							this.timeShift(e);
+							
+						});
+						
+					}
 				
-			});
+				});
 			
 			// Event Marker Events
 			this.timeEvents.each(function () {
