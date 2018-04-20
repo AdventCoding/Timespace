@@ -712,7 +712,7 @@
 						
 						// Update event's span position if the event width extends the container viewport
 						if (eventElemWidth > this.viewData.width) {
-							this.container.on('shift.jqTimespace', () => {
+							this.container.on('shiftX.jqTimespace', () => {
 								this.updateWideEvent(
 									eventOffset,
 									eventElemWidth,
@@ -1153,7 +1153,7 @@
 				if (isX) { this.dataContainer.css('backgroundPosition', 'bottom 0 left 0'); }
 			}
 			
-			this.container.trigger('shift.jqTimespace');
+			if (isX) { this.container.trigger('shiftX.jqTimespace'); }
 			
 			return this;
 			
