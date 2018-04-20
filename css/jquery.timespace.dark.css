@@ -140,6 +140,7 @@
 		z-index: 1;
 		display: flex;
 		position: relative;
+		top: 0;
 		min-height: 100%;
 	}
 	.jqTimepsaceContainer aside .jqTimespaceColumn {
@@ -248,20 +249,19 @@
 	.jqTimespaceDisplay .jqTimespaceDisplayRight {
 		width: 0.9rem;
 		height: 1.3rem;
-		background: #616a7e;
+		text-align: center;
+		font-weight: bold;
 		cursor: pointer;
 	}
 	.jqTimespaceDisplay .jqTimespaceDisplayLeft {
 		margin-left: 0.5rem;
-		clip-path: polygon(100% 0, 100% 100%, 0% 50%);
 	}
 	.jqTimespaceDisplay .jqTimespaceDisplayRight {
 		margin-left: 1.2rem;
-		clip-path: polygon(0 0%, 0 100%, 100% 50%);
 	}
 	.jqTimespaceDisplay .jqTimespaceDisplayLeft:hover,
 	.jqTimespaceDisplay .jqTimespaceDisplayRight:hover {
-		background: #98a5c2;
+		color: #ff7c6b;
 	}
 	.jqTimespaceDisplay .jqTimespaceTimeframe {
 		display: inline-block;
