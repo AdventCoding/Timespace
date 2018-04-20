@@ -329,9 +329,9 @@
 			};
 			
 			// Setup Base Elements
-			this.error = $(this.error).appendTo(this.container);
 			this.container = $(this.container).appendTo(target)
 				.on('resize.jqTimespace', this.updateDynamicData.bind(this));
+			this.error = $(this.error).appendTo(this.container);
 			this.dataContainer = $(this.dataContainer)
 				.css({
 					maxWidth: opts.maxWidth,
@@ -427,6 +427,9 @@
 			
 			this.buildTimeHeadings()
 				.buildTimeMarkers();
+			
+			this.viewData.width = Math.ceil(this.dataContainer.innerWidth());
+			this.viewData.left = Math.ceil(this.dataContainer.offset().left);
 			
 			return this;
 			
@@ -580,10 +583,14 @@
 			let opts = this.options,
 				markers = this.markers,
 				events = $(),
-				rows = [],
-				curRow = 0,
-				marginOrigin = 0,
-				marginTop = 0;
+				rowData = {
+					rows: [],
+					curRow: 0,
+					marginOrigin: 0,
+					marginTop: 0,
+					event: null,
+					eventElem: null,
+				};
 			
 			if (this.data.events) {
 				this.data.events.forEach((v, i) => {
@@ -601,15 +608,17 @@
 						eventCallback = (utility.isEmpty(v.callback))
 							? $.noop : v.callback.bind(this.API);
 					
+					rowData.event = $(`<div class="${classes.event}"><div class="${classes.eventBorder}"></div></div>`);
+					rowData.eventElem = $(`<p${evtClass}><span>${title}</span></p>`).prependTo(rowData.event);
+					
 					const rounded = utility.roundToIncrement('floor', opts.markerIncrement, start),
 						index = markers.indexOf(rounded),
-						event = $(`<div class="${classes.event}"><div class="${classes.eventBorder}"></div></div>`),
-						eventElem = $(`<p${evtClass}><span>${title}</span></p>`).prependTo(event);
+						eventElemSpan = rowData.eventElem.children('span');
 					
 					if (!$.isFunction(eventCallback)) {
 						
 						errHandler(new Error(errors.INV_EVENT_CB.msg), 'INV_EVENT_CB', this.error);
-						eventElem.data('eventCallback', $.noop);
+						rowData.eventElem.data('eventCallback', $.noop);
 						
 					}
 					
@@ -617,57 +626,53 @@
 						errHandler(new Error(errors.EVENT_OOR.msg), 'EVENT_OOR', this.error);
 					}
 					
-					let eventOverhang = false,
-						pos = 0,
+					let pos = 0,
 						eventOffset = 0,
-						realWidth = 0,
-						span = 0,
-						sharingWith = null,
-						sharedSpace = 0;
+						eventOverhang = false,
+						eventWidth = 0,
+						eventElemWidth = 0,
+						eventElemSpanWidth = 0;
 					
 					if (index >= 0) {
 						
 						// Find the position based on percentage of starting point to the increment amount
 						pos = (((start - markers[index]) / opts.markerIncrement) * opts.markerWidth);
-						event.css('left', pos + 'px').appendTo(this.timeMarkers[index]);
-						eventOffset = Math.floor(event.offset().left);
-						
-						// Check if a jqTimespaceEvent div already exists in this time marker
-						if (event.siblings(`.${classes.event}`).length > 0) {
-							sharingWith = event.siblings(`.${classes.event}`);
-						}
+						rowData.event.css('left', pos + 'px').appendTo(this.timeMarkers[index]);
+						eventOffset = Math.floor(rowData.event.offset().left);
 						
 						// Immediately invoke arrow function to return best width
-						eventElem.width((() => {
+						eventElemWidth = (() => {
 							
-							const curWidth = eventElem.children('span').width(),
-								endWidth = (end) ? ((end - start) / opts.markerIncrement) * opts.markerWidth : 0;
+							const endWidth = (end) ? ((end - start) / opts.markerIncrement) * opts.markerWidth : 0;
 							
 							let styles = [
-									parseFloat(eventElem.css('borderLeftWidth')) || 0,
-									parseFloat(eventElem.css('borderRightWidth')) || 0,
-									parseFloat(eventElem.css('paddingLeft')) || 0,
-									parseFloat(eventElem.css('paddingRight')) || 0,
+									parseFloat(rowData.eventElem.css('borderLeftWidth')) || 0,
+									parseFloat(rowData.eventElem.css('borderRightWidth')) || 0,
+									parseFloat(rowData.eventElem.css('paddingLeft')) || 0,
+									parseFloat(rowData.eventElem.css('paddingRight')) || 0,
 								],
 								extra = styles.reduce((t, v) => t + v), // Add all style values
 								tableLength = this.viewData.tableWidth + this.getTablePosition(true),
 								result = opts.markerWidth - extra;
 							
-							eventOverhang = (tableLength < eventOffset + curWidth + extra);
+							eventElemSpanWidth = eventElemSpan.width();
+							eventOverhang = (tableLength < eventOffset + eventElemSpanWidth + extra);
 							
 							if (eventOverhang) {
-								result = curWidth; // Text width
+								result = eventElemSpanWidth; // Text width
 							} else if (width) {
 								result = width - extra; // User-defined width
-							} else if (curWidth > endWidth - extra && curWidth > result) {
-								result = curWidth; // Text width
+							} else if (eventElemSpanWidth > endWidth - extra && eventElemSpanWidth > result) {
+								result = eventElemSpanWidth; // Text width
 							} else if (endWidth - extra > result) {
 								result = endWidth - extra; // Timespan width
 							}
 							
 							return result;
 							
-						})())
+						})();
+						
+						rowData.eventElem.width(eventElemWidth)
 							.data({
 								time: this.getFullDate(start, end),
 								title: title,
@@ -675,18 +680,17 @@
 								noDetails: noDetails,
 								eventCallback: eventCallback,
 							})
-							.attr('title', eventElem.data('time'));
+							.attr('title', rowData.eventElem.data('time'));
 						
-						events = events.add(eventElem);
-						realWidth = eventElem.outerWidth();
-						event.width(realWidth);
-						span = eventOffset + Math.floor(event.outerWidth());
+						events = events.add(rowData.eventElem);
+						eventWidth = rowData.eventElem.outerWidth();
+						rowData.event.width(eventWidth);
 						
 						// Prevent display for noDetails, and use description on event title
 						if (noDetails) {
 							
-							event.addClass(classes.noDisplay);
-							eventElem.attr('title', (i, t) => (!utility.isEmpty(description.text()))
+							rowData.event.addClass(classes.noDisplay);
+							rowData.eventElem.attr('title', (i, t) => (!utility.isEmpty(description.text()))
 								? `${t} - ${description.text()}` : t
 							);
 							
@@ -695,82 +699,27 @@
 						// Reverse event if it extends past the time table width
 						if (eventOverhang) {
 							
-							event.css('left', pos - realWidth + 'px').addClass(classes.eventRev);
-							eventOffset = Math.floor(event.offset().left);
+							rowData.event.css('left', pos - eventWidth + 'px')
+								.addClass(classes.eventRev);
+							eventOffset = Math.floor(rowData.event.offset().left);
 							
 						}
 						
-						// Cache the row widths for checking overlap
-						if (i === 0) {
-							
-							rows.push(span);
-							marginOrigin = parseInt(event.css('marginTop'));
-							marginTop = Math.floor(marginOrigin + eventElem.outerHeight());
-							
-						} else {
-							
-							if (sharingWith) {
-								
-								// Event is sharing the same td with another event
-								// Start on the next row of the shared element
-								// And start with the basic padding
-								sharedSpace = marginOrigin;
-								curRow += 1;
-								
-								// Check if rows array needs expanding
-								if (rows.length === curRow) {
-									rows[curRow] = 0;
-								}
-								
-							}
-							
-							for (let row = (sharingWith) ? curRow : 0; row < rows.length; row += 1) {
-								
-								if (rows[row] <= eventOffset) {
-									
-									// Row is clear / Cache the new span width and switch to this row space
-									rows[row] = span;
-									curRow = row;
-									
-									// If first row, the normal marginTop will be used
-									// Otherwise, calculate the padding for the current row
-									if (row > 0) {
-										if (sharingWith) {
-											event.css('marginTop', sharedSpace);
-										} else {
-											event.css('marginTop', row * marginTop + marginOrigin);
-										}
-									}
-									
-									break;
-									
-								} else {
-									
-									// Push the event down to the next row space
-									if (sharingWith) {
-										
-										// Cache the amount of padding for next row check
-										sharedSpace += marginTop;
-										event.css('marginTop', sharedSpace);
-										
-									} else {
-										event.css('marginTop', (row + 1) * marginTop + marginOrigin);
-									}
-									
-									// If on last cached row, settle with the next row space
-									if (row === rows.length - 1) {
-										
-										rows[row + 1] = span;
-										curRow = row + 1;
-										
-										break;
-										
-									}
-									
-								}
-								
-							}
-							
+						this.updateEventOverlap(i, rowData, eventOffset);
+						
+						// Change offset to start at table offset in case of window resize
+						eventOffset -= this.viewData.left;
+						
+						// Update event's span position if the event width extends the container viewport
+						if (eventElemWidth > this.viewData.width) {
+							this.container.on('shift.jqTimespace', () => {
+								this.updateWideEvent(
+									eventOffset,
+									eventElemWidth,
+									eventElemSpan,
+									eventElemSpanWidth
+								);
+							});
 						}
 						
 					}
@@ -879,6 +828,7 @@
 						this.lastMousePosY = (touch) ? touch.y : e.pageY;
 						this.updateDynamicData()
 							.setTimeShiftState(true);
+						
 						$(global).on('mousemove.jqTimespace touchmove.jqTimespace', (e) => {
 							
 							e.preventDefault();
@@ -954,145 +904,6 @@
 				}
 				
 			});
-			
-			return this;
-			
-		},
-		
-		/**
-		 * Update the static container data
-		 * @return {Object} The Plugin instance
-		 */
-		updateStaticData: function () {
-			
-			this.viewData.height = Math.ceil(this.dataContainer.innerHeight());
-			this.viewData.halfY = Math.ceil(this.viewData.height / 2);
-			this.viewData.tableOffsetY = this.timeTable.outerHeight() - this.dataContainer.outerHeight();
-			
-			return this;
-			
-		},
-		
-		/**
-		 * Update the dynamic container and time table data
-		 * @return {Object} The Plugin instance
-		 */
-		updateDynamicData: function () {
-			
-			this.viewData.left = Math.ceil(this.dataContainer.offset().left);
-			this.viewData.offsetY = this.viewData.top + this.viewData.height;
-			this.viewData.top = Math.ceil(this.dataContainer.offset().top);
-			this.viewData.width = Math.ceil(this.dataContainer.innerWidth());
-			this.viewData.halfX = Math.ceil(this.viewData.width / 2);
-			this.viewData.heightOverhang = (this.dataContainer.outerHeight() > $(global).height() * 0.8);
-			this.viewData.offsetX = this.viewData.left + this.viewData.width;
-			this.viewData.shiftOriginX = this.getTablePosition();
-			this.viewData.shiftOriginY = this.getTableBodyPosition();
-			this.viewData.tableOffsetX = this.timeTable.outerWidth() - this.dataContainer.outerWidth();
-			
-			// Check if time table is too small to shift
-			if (this.viewData.tableOffsetX < 0) {
-				
-				this.shiftXEnabled = false;
-				this.timeTable.css('margin', '0 auto');
-				this.timeTableLine.hide();
-				this.navLeft.hide();
-				this.navRight.hide();
-				
-			} else {
-				
-				this.shiftXEnabled = true;
-				this.timeTable.css('margin', 0);
-				this.timeTableLine.show();
-				
-				if (this.options.navigateAmount > 0) {
-					
-					this.navLeft.show();
-					this.navRight.show();
-					
-				}
-				
-			}
-			if (this.viewData.tableOffsetY < 0) {
-				this.shiftYEnabled = false;
-			}
-			
-			this.updateCurWideHeading();
-			
-			return this;
-			
-		},
-		
-		/**
-		 * Update the currently visible wide heading
-		 * @param {number} xDiff The shift x difference if time table is shifting
-		 * @return {Object} The Plugin instance
-		 */
-		updateCurWideHeading: function (xDiff) {
-			
-			if (!this.checkCurWideHeading(null, xDiff) && this.wideHeadings.length > 0) {
-				this.wideHeadings.each((i, elem) => {
-					this.setCurWideHeading($(elem), xDiff);
-				});
-			}
-			
-			return this;
-			
-		},
-		
-		/**
-		 * Check if the current wide heading is still in visible bounds
-		 * @param {Object?} elem The optional jQuery heading element
-		 * @param {number} xDiff The shift x difference if time table is shifting
-		 * @return {bool}
-		 */
-		checkCurWideHeading: function (elem, xDiff) {
-			
-			const e = elem || this.curWideHeading;
-			
-			if (!e || e.length < 1) { return false; }
-			
-			const left = e.offset().left - (xDiff || 0),
-				textSpan = e.data('textSpan');
-			
-			return ((left + e.data('span') - textSpan - this.viewData.halfX) > this.viewData.left
-				&& (left + textSpan + this.viewData.halfX) < this.viewData.offsetX);
-			
-		},
-		
-		/**
-		 * Set the currently visible wide heading
-		 * @param {Object} elem The jQuery heading element
-		 * @param {number} xDiff The shift x difference if time table is shifting
-		 * @return {Object} The Plugin instance
-		 */
-		setCurWideHeading: function (elem, xDiff) {
-			
-			const span = elem.children('span');
-			
-			if (this.checkCurWideHeading(elem, xDiff)) {
-				
-				// Remove current title clamp if exists
-				if (this.curWideHeading) {
-					this.curWideHeading.children('span').css('opacity', 1);
-				}
-				
-				// Set up new clone title for heading clamp
-				this.curWideHeading = elem;
-				span.css('opacity', 0);
-				this.titleClamp.text(span.text())
-					.stop()
-					.animate({ opacity: 1 }, 250);
-				
-			} else if (this.curWideHeading
-				&& this.curWideHeading[0] === elem[0]) {
-				
-				// Current wide heading is no longer within view range
-				this.curWideHeading.children('span').css('opacity', 1);
-				this.curWideHeading = null;
-				this.titleClamp.stop().animate({ 'opacity' : 0 }, 250);
-				
-			}
 			
 			return this;
 			
@@ -1209,10 +1020,15 @@
 		 */
 		setTimeShiftState: function (on) {
 			
-			const tables = this.dataContainer.add(this.timeTable);
+			const tables = this.dataContainer.add(this.timeTable),
+				events = this.timeTableBody.add(
+					this.timeEvents.map(function () {
+						return $(this).find('span')[0];
+					})
+				);
 			
 			// Reset Transition
-			this.timeTableBody.removeClass(classes.animated);
+			events.removeClass(classes.animated);
 			tables.removeClass(classes.animated).css({
 				transitionDuration: '',
 				transitionTimingFunction: '',
@@ -1225,7 +1041,7 @@
 				
 			} else {
 				
-				this.timeTableBody.addClass(classes.animated);
+				events.addClass(classes.animated);
 				tables.addClass(classes.animated);
 				this.timeTable.removeClass(classes.shifting);
 				
@@ -1280,7 +1096,7 @@
 				
 				this.timeShiftPos('X', toss)
 					.updateCurWideHeading(
-						(this.shiftPosX) ? parseInt(this.timeTable.css('left')) - this.shiftPosX : 0
+						(this.shiftPosX !== null) ? parseInt(this.timeTable.css('left')) - this.shiftPosX : 0
 					)
 					.timeShiftCache('X', x, finished);
 				
@@ -1336,6 +1152,8 @@
 				this[target].css(css, 0);
 				if (isX) { this.dataContainer.css('backgroundPosition', 'bottom 0 left 0'); }
 			}
+			
+			this.container.trigger('shift.jqTimespace');
 			
 			return this;
 			
@@ -1535,6 +1353,267 @@
 			time += (!utility.isEmpty(end) && end !== start) ? ` – ${this.getDisplayTime(end)}` : '';
 			
 			return time;
+			
+		},
+		
+		/**
+		 * Update the static container data
+		 * @return {Object} The Plugin instance
+		 */
+		updateStaticData: function () {
+			
+			this.viewData.height = Math.ceil(this.dataContainer.innerHeight());
+			this.viewData.halfY = Math.ceil(this.viewData.height / 2);
+			this.viewData.tableOffsetY = this.timeTable.outerHeight() - this.dataContainer.outerHeight();
+			
+			return this;
+			
+		},
+		
+		/**
+		 * Update the dynamic container and time table data
+		 * @return {Object} The Plugin instance
+		 */
+		updateDynamicData: function () {
+			
+			this.viewData.left = Math.ceil(this.dataContainer.offset().left);
+			this.viewData.offsetY = this.viewData.top + this.viewData.height;
+			this.viewData.top = Math.ceil(this.dataContainer.offset().top);
+			this.viewData.width = Math.ceil(this.dataContainer.innerWidth());
+			this.viewData.halfX = Math.ceil(this.viewData.width / 2);
+			this.viewData.heightOverhang = (this.dataContainer.outerHeight() > $(global).height() * 0.8);
+			this.viewData.offsetX = this.viewData.left + this.viewData.width;
+			this.viewData.shiftOriginX = this.getTablePosition();
+			this.viewData.shiftOriginY = this.getTableBodyPosition();
+			this.viewData.tableOffsetX = this.timeTable.outerWidth() - this.dataContainer.outerWidth();
+			
+			// Check if time table is too small to shift
+			if (this.viewData.tableOffsetX < 0) {
+				
+				this.shiftXEnabled = false;
+				this.timeTable.css('margin', '0 auto');
+				this.timeTableLine.hide();
+				this.navLeft.hide();
+				this.navRight.hide();
+				
+			} else {
+				
+				this.shiftXEnabled = true;
+				this.timeTable.css('margin', 0);
+				this.timeTableLine.show();
+				
+				if (this.options.navigateAmount > 0) {
+					
+					this.navLeft.show();
+					this.navRight.show();
+					
+				}
+				
+			}
+			if (this.viewData.tableOffsetY < 0) {
+				this.shiftYEnabled = false;
+			}
+			
+			this.updateCurWideHeading();
+			
+			return this;
+			
+		},
+		
+		/**
+		 * Update the currently visible wide heading
+		 * @param {number} xDiff The shift x difference if time table is shifting
+		 * @return {Object} The Plugin instance
+		 */
+		updateCurWideHeading: function (xDiff) {
+			
+			if (!this.checkCurWideHeading(null, xDiff) && this.wideHeadings.length > 0) {
+				this.wideHeadings.each((i, elem) => {
+					this.setCurWideHeading($(elem), xDiff);
+				});
+			}
+			
+			return this;
+			
+		},
+		
+		/**
+		 * Check if the current wide heading is still in visible bounds
+		 * @param {Object?} elem The optional jQuery heading element
+		 * @param {number} xDiff The shift x difference if time table is shifting
+		 * @return {bool}
+		 */
+		checkCurWideHeading: function (elem, xDiff) {
+			
+			const e = elem || this.curWideHeading;
+			
+			if (!e || e.length < 1) { return false; }
+			
+			const left = e.offset().left - (xDiff || 0),
+				textSpan = e.data('textSpan');
+			
+			return ((left + e.data('span') - textSpan - this.viewData.halfX) > this.viewData.left
+				&& (left + textSpan + this.viewData.halfX) < this.viewData.offsetX);
+			
+		},
+		
+		/**
+		 * Set the currently visible wide heading
+		 * @param {Object} elem The jQuery heading element
+		 * @param {number} xDiff The shift x difference if time table is shifting
+		 * @return {Object} The Plugin instance
+		 */
+		setCurWideHeading: function (elem, xDiff) {
+			
+			const span = elem.children('span');
+			
+			if (this.checkCurWideHeading(elem, xDiff)) {
+				
+				// Remove current title clamp if exists
+				if (this.curWideHeading) {
+					this.curWideHeading.children('span').css('opacity', 1);
+				}
+				
+				// Set up new clone title for heading clamp
+				this.curWideHeading = elem;
+				span.css('opacity', 0);
+				this.titleClamp.text(span.text())
+					.stop()
+					.animate({ opacity: 1 }, 250);
+				
+			} else if (this.curWideHeading
+				&& this.curWideHeading[0] === elem[0]) {
+				
+				// Current wide heading is no longer within view range
+				this.curWideHeading.children('span').css('opacity', 1);
+				this.curWideHeading = null;
+				this.titleClamp.stop().animate({ 'opacity' : 0 }, 250);
+				
+			}
+			
+			return this;
+			
+		},
+		
+		/**
+		 * Update the position of a wide event's title
+		 * @param {number} eventOffset The event container's left offset from time table
+		 * @param {number} elemWidth The event element's width
+		 * @param {Object} span The span element to position
+		 * @param {number} spanWidth The event element's span width
+		 * @return {Object} The Plugin instance
+		 */
+		updateWideEvent: function (eventOffset, elemWidth, span, spanWidth) {
+			
+			const leftPos = eventOffset + this.viewData.left + this.shiftPosX,
+				newPos = this.viewData.left - leftPos;
+			
+			if (leftPos < this.viewData.left
+				&& spanWidth <= this.viewData.width) {
+				
+				if (newPos > elemWidth - spanWidth) {
+					span.css('left', elemWidth - spanWidth);
+				} else {
+					span.css('left', newPos);
+				}
+				
+			} else {
+				span.css('left', 0);
+			}
+			
+			return this;
+			
+		},
+		
+		/**
+		 * Update an event's position if overlapping other events
+		 * @param {number} i The index of the current event
+		 * @param {Object} rowData {rows, curRow, marginOrigin, marginTop, event, eventElem}
+		 * @param {number} eventOffset The event's left offset
+		 * @return {Object} The Plugin instance
+		 */
+		updateEventOverlap: function (i, rowData, eventOffset) {
+			
+			// Check if a jqTimespaceEvent div already exists in the time marker
+			const sharingWith = (rowData.event.siblings(`.${classes.event}`).length > 0)
+					? rowData.event.siblings(`.${classes.event}`) : null,
+				span = eventOffset + Math.floor(rowData.event.outerWidth());
+			
+			let sharedSpace = 0;
+			
+			if (i === 0) {
+				
+				rowData.rows.push(span);
+				rowData.marginOrigin = parseInt(rowData.event.css('marginTop'));
+				rowData.marginTop = Math.floor(rowData.marginOrigin + rowData.eventElem.outerHeight());
+				
+			} else {
+				
+				if (sharingWith) {
+					
+					// Event is sharing the same td with another event
+					// Start on the next row of the shared element
+					// And start with the basic padding
+					sharedSpace = rowData.marginOrigin;
+					rowData.curRow += 1;
+					
+					// Check if rows array needs expanding
+					if (rowData.rows.length === rowData.curRow) {
+						rowData.rows[rowData.curRow] = 0;
+					}
+					
+				}
+				
+				for (let row = (sharingWith) ? rowData.curRow : 0; row < rowData.rows.length; row += 1) {
+					
+					if (rowData.rows[row] <= eventOffset) {
+						
+						// Row is clear / Cache the new span width and switch to this row space
+						rowData.rows[row] = span;
+						rowData.curRow = row;
+						
+						// If first row, the normal marginTop will be used
+						// Otherwise, calculate the padding for the current row
+						if (row > 0) {
+							if (sharingWith) {
+								rowData.event.css('marginTop', sharedSpace);
+							} else {
+								rowData.event.css('marginTop', row * rowData.marginTop + rowData.marginOrigin);
+							}
+						}
+						
+						break;
+						
+					} else {
+						
+						// Push the event down to the next row space
+						if (sharingWith) {
+							
+							// Cache the amount of padding for next row check
+							sharedSpace += rowData.marginTop;
+							rowData.event.css('marginTop', sharedSpace);
+							
+						} else {
+							rowData.event.css('marginTop', (row + 1) * rowData.marginTop + rowData.marginOrigin);
+						}
+						
+						// If on last cached row, settle with the next row space
+						if (row === rowData.rows.length - 1) {
+							
+							rowData.rows[row + 1] = span;
+							rowData.curRow = row + 1;
+							
+							break;
+							
+						}
+						
+					}
+					
+				}
+				
+			}
+			
+			return this;
 			
 		},
 		
