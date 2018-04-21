@@ -1028,14 +1028,15 @@
 		 */
 		setTimeShiftState: function (on) {
 			
-			const tables = this.dataContainer.add(this.timeTable),
-				events = this.timeEvents.map(function () {
+			const elems = this.dataContainer
+				.add(this.timeTable)
+				.add(this.timeTableBody)
+				.add(this.timeEvents.map(function () {
 					return $(this).find('span')[0];
-				});
+				}));
 			
-			// Reset Transition
-			events.removeClass(classes.animated);
-			tables.add(this.timeTableBody).removeClass(classes.animated)
+			// Reset Transitions
+			elems.removeClass(classes.animated)
 				.css({
 					transitionDuration: '',
 					transitionTimingFunction: '',
@@ -1048,24 +1049,17 @@
 				
 			} else {
 				
-				events.addClass(classes.animated);
-				tables.add(this.timeTableBody).addClass(classes.animated);
+				elems.addClass(classes.animated);
 				this.timeTable.removeClass(classes.shifting);
 				
 				// Check if custom transition time is used
 				if (this.transition >= 0) {
-					
-					tables.css('transitionDuration', this.transition + 's');
-					events.css('transitionDuration', this.transition + 's');
-					
+					elems.css('transitionDuration', this.transition + 's');
 				}
 				
 				// Check if custom transition ease is used
 				if (!utility.isEmpty(this.transitionEase)) {
-					
-					tables.css('transitionTimingFunction', this.transitionEase);
-					events.css('transitionTimingFunction', this.transitionEase);
-					
+					elems.css('transitionTimingFunction', this.transitionEase);
 				}
 				
 			}
