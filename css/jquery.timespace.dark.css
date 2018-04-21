@@ -241,7 +241,6 @@
 	.jqTimespaceDisplay .jqTimespaceDisplayLeft,
 	.jqTimespaceDisplay .jqTimespaceDisplayRight {
 		width: 0.9rem;
-		height: 1.3rem;
 		text-align: center;
 		font-weight: bold;
 		cursor: pointer;
