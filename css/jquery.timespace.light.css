@@ -230,11 +230,13 @@
 		margin: 0;
 		padding: 0.5rem;
 		text-align: left;
+		font-size: 1.4rem;
 	}
 	.jqTimespaceDisplay .jqTimespaceDisplayTime {
 		display: flex;
 		position: relative;
 		align-items: center;
+		font-size: 1.1rem;
 	}
 	.jqTimespaceDisplay .jqTimespaceDisplayLeft,
 	.jqTimespaceDisplay .jqTimespaceDisplayRight {
