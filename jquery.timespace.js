@@ -608,7 +608,7 @@
 						eventCallback = (utility.isEmpty(v.callback))
 							? $.noop : v.callback.bind(this.API);
 					
-					rowData.event = $(`<div class="${classes.event}"><div class="${classes.eventBorder}"></div></div>`);
+					rowData.event = $(`<div class="${classes.event}"></div>`);
 					rowData.eventElem = $(`<p${evtClass}><span>${title}</span></p>`).prependTo(rowData.event);
 					
 					const rounded = utility.roundToIncrement('floor', opts.markerIncrement, start),
@@ -637,7 +637,7 @@
 						
 						// Find the position based on percentage of starting point to the increment amount
 						pos = (((start - markers[index]) / opts.markerIncrement) * opts.markerWidth);
-						rowData.event.css('left', pos + 'px').appendTo(this.timeMarkers[index]);
+						rowData.event.css('left', pos).appendTo(this.timeMarkers[index]);
 						eventOffset = Math.floor(rowData.event.offset().left);
 						
 						// Immediately invoke arrow function to return best width
@@ -694,14 +694,22 @@
 								? `${t} - ${description.text()}` : t
 							);
 							
+						} else {
+							
+							$(`<div class="${classes.eventBorder}"
+								style="left:${eventOffset - this.viewData.left - 1}px;"></div>`)
+								.appendTo(this.timeMarkers[index]);
+							
 						}
 						
 						// Reverse event if it extends past the time table width
 						if (eventOverhang) {
 							
-							rowData.event.css('left', pos - eventWidth + 'px')
+							rowData.event.css('left', pos - eventWidth)
 								.addClass(classes.eventRev);
 							eventOffset = Math.floor(rowData.event.offset().left);
+							rowData.event.next('.' + classes.eventBorder)
+								.css('left', eventOffset - this.viewData.left + eventWidth - 1);
 							
 						}
 						
@@ -1021,18 +1029,17 @@
 		setTimeShiftState: function (on) {
 			
 			const tables = this.dataContainer.add(this.timeTable),
-				events = this.timeTableBody.add(
-					this.timeEvents.map(function () {
-						return $(this).find('span')[0];
-					})
-				);
+				events = this.timeEvents.map(function () {
+					return $(this).find('span')[0];
+				});
 			
 			// Reset Transition
 			events.removeClass(classes.animated);
-			tables.removeClass(classes.animated).css({
-				transitionDuration: '',
-				transitionTimingFunction: '',
-			});
+			tables.add(this.timeTableBody).removeClass(classes.animated)
+				.css({
+					transitionDuration: '',
+					transitionTimingFunction: '',
+				});
 			
 			if (on) {
 				
@@ -1042,17 +1049,23 @@
 			} else {
 				
 				events.addClass(classes.animated);
-				tables.addClass(classes.animated);
+				tables.add(this.timeTableBody).addClass(classes.animated);
 				this.timeTable.removeClass(classes.shifting);
 				
 				// Check if custom transition time is used
 				if (this.transition >= 0) {
+					
 					tables.css('transitionDuration', this.transition + 's');
+					events.css('transitionDuration', this.transition + 's');
+					
 				}
 				
 				// Check if custom transition ease is used
 				if (!utility.isEmpty(this.transitionEase)) {
+					
 					tables.css('transitionTimingFunction', this.transitionEase);
+					events.css('transitionTimingFunction', this.transitionEase);
+					
 				}
 				
 			}

@@ -34,7 +34,7 @@
 /* Navigation and Line Guide */
 .jqTimepsaceContainer .jqTimespaceLeft,
 .jqTimepsaceContainer .jqTimespaceRight {
-	z-index: 2;
+	z-index: 3;
 	position: absolute;
 	bottom: 30%;
 	margin: 0;
@@ -61,7 +61,7 @@
 		opacity: 1;
 	}
 	.jqTimepsaceContainer .jqTimespaceLine {
-		z-index: 2;
+		z-index: 3;
 		position: absolute;
 		box-sizing: border-box;
 		top: 0;
@@ -86,12 +86,12 @@
 	cursor: move;
 }
 	.jqTimepsaceContainer header {
-		z-index: 3;
+		z-index: 4;
 		position: relative;
 		background: #282c34;
 	}
 	.jqTimepsaceContainer .jqTimespaceTitleClamp {
-		z-index: 4;
+		z-index: 5;
 		display: block;
 		position: absolute;
 		left: 50%;
@@ -145,6 +145,7 @@
 	}
 	.jqTimepsaceContainer aside .jqTimespaceColumn {
 		box-sizing: border-box;
+		padding-bottom: 20px;
 	}
 	.jqTimepsaceContainer aside .jqTimespaceColumn:not(:first-child) {
 		border-left: 1px dashed #575757;
@@ -152,36 +153,26 @@
 	
 /* Event Boxes */
 .jqTimepsaceContainer .jqTimespaceEvent {
+	z-index: 2;
 	position: relative;
 	box-sizing: border-box;
 	margin: 1rem 0 0 0;
 	padding: 0;
 	text-align: left;
 }
-	.jqTimepsaceContainer .jqTimespaceEvent:last-of-type {
-		margin-bottom: 20px;
-	}
 	.jqTimepsaceContainer .jqTimespaceEventRev {
 		text-align: right;
 	}
-	.jqTimespaceEvent .jqTimespaceEventBorder {
+	.jqTimepsaceContainer .jqTimespaceEventBorder {
+		z-index: 1;
 		position: absolute;
 		top: 0;
 		width: 1px;
 		height: 100%;
-		border-left: 1px dashed #777777;
+		border-left: 1px solid #00000000;
 	}
-	.jqTimespaceEventRev .jqTimespaceEventBorder {
-		right: 0;
-		border-left: none;
-		border-right: 1px dashed #777777;
-	}
-	.jqTimespaceEvent p:hover + .jqTimespaceEventBorder {
+	.jqTimespaceEvent:hover + .jqTimespaceEventBorder {
 		border-left: 1px dashed #bebebe;
-	}
-	.jqTimespaceEventRev p:hover + .jqTimespaceEventBorder {
-		border-left: none;
-		border-right: 1px dashed #bebebe;
 	}
 	.jqTimespaceEvent p {
 		box-shadow: 3px 6px 5px -5px #000000;
