@@ -10,7 +10,7 @@
 
 /**
  * jQuery Timespace Plugin
- * Important: This Plugin is not intended to support any version of Internet Explorer unless transpiled
+ * Important: This Plugin uses features that are not supported by any Internet Explorer version.
  * @author Michael S. Howard
  * @requires jQuery 1.7+
  * @param $ The jQuery object
