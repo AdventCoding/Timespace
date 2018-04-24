@@ -45,7 +45,7 @@
 	line-height: 2rem;
 	text-align: center;
 	cursor: pointer;
-	background: #32394473;
+	background: rgba(50, 57, 68, 0.451);
 	opacity: 0.7;
 	transition: background 0.4s ease-in, opacity 0.4s ease-in;
 }
@@ -70,7 +70,7 @@
 		padding: 0;
 		width: 3px;
 		height: 100%;
-		background: linear-gradient(to top, #ffffff 0%,#cacaca 20%,#474747 100%);
+		background: linear-gradient(to top, #ffffff 0%, #cacaca 20%, #474747 100%);
 		opacity: 0.1;
 		cursor: move;
 	}
@@ -169,7 +169,7 @@
 		top: 0;
 		width: 1px;
 		height: 100%;
-		border-left: 1px solid #00000000;
+		border-left: 1px solid rgba(0, 0, 0, 0);
 	}
 	.jqTimespaceEvent:hover + .jqTimespaceEventBorder {
 		border-left: 1px dashed #bebebe;
