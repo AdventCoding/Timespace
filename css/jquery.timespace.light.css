@@ -175,7 +175,6 @@
 		border-left: 1px dashed #363636;
 	}
 	.jqTimespaceEvent p {
-		box-shadow: 3px 6px 5px -5px #999999;
 		overflow: hidden;
 		margin: 0;
 		border: 1px solid #c0c0c0;
@@ -185,7 +184,7 @@
 		font-size: 1rem;
 		white-space: nowrap;
 		cursor: pointer;
-		transition: all 0.3s ease-in;
+		transition: background-color 0.3s ease-in;
 		background: #ffffff;
 	}
 	.jqTimespaceEvent p span {
@@ -196,17 +195,14 @@
 	}
 	.jqTimespaceEvent p:hover,
 	.jqTimespaceEvent .jqTimespaceEventSelected {
-		box-shadow: 3px 8px 10px -10px #999999;
 		background: #fffaf2;
 	}
 	.jqTimespaceNoDisplay p {
-		box-shadow: none;
 		cursor: move;
 		background: #ebebeb;
 		opacity: 0.7;
 	}
 	.jqTimespaceNoDisplay p:hover {
-		box-shadow: none;
 		background: #ebebeb;
 		transform: none;
 	}
