@@ -1,6 +1,6 @@
 # jQuery Timespace
 
-The jQuery Timespace plugin is a way to handle the display of event data in a horizontal table that can be dragged left and right. Each event in the time table can be clicked on to display more details about the event.
+The jQuery Timespace plugin provides a way to handle the display of event data in a horizontal table that can be dragged in all directions. Each event in the time table can be selected to display more details about the event.
 >Important: This Plugin uses features that are not supported by any Internet Explorer version.
 
 ## Example

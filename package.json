@@ -1,0 +1,27 @@
+{
+  "name": "timespace",
+  "version": "1.1.1",
+  "description": "The jQuery Timespace plugin provides a way to handle the display of event data in a horizontal table that can be dragged in all directions.",
+  "main": "jquery.timespace.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdventCoding/Timespace.git"
+  },
+  "keywords": [
+    "data",
+    "date",
+    "events",
+    "schedule",
+    "timeline",
+    "timetable"
+  ],
+  "author": "Michael (https://github.com/AdventCoding/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AdventCoding/Timespace/issues"
+  },
+  "homepage": "https://github.com/AdventCoding/Timespace#readme"
+}
