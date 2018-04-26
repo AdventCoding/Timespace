@@ -1,6 +1,6 @@
 {
   "name": "jqtimespace",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "The jQuery Timespace plugin provides a way to handle the display of event data in a horizontal table that can be dragged in all directions.",
   "main": "jquery.timespace.js",
   "scripts": {
