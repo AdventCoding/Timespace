@@ -174,6 +174,8 @@
 	
 	let inst = [],
 		Timespace = null,
+		API = null,
+		APILoader = null,
 		utility = null;
 	
 	/**
@@ -238,6 +240,7 @@
 		
 		options: null,
 		data: null,
+		API: null,
 		
 		// Calculations
 		totalTime: 0,
@@ -290,10 +293,12 @@
 		 */
 		loadAsync: function (target, options, callback) {
 			
+			const id = inst.length;
+			
 			$.get(options.data, (data) => {
 				
 				options.data = data;
-				this.load(target, options);
+				this.load(target, options, id);
 				callback.call(this.API);
 				
 			}).fail((err) => {
@@ -312,13 +317,14 @@
 		 * The main method to load the Plugin
 		 * @param {Object} target The jQuery Object that the plugin was called on
 		 * @param {Object} options The user-defined options
+		 * @param {Number?} id The optional instance id
 		 * @return {Object} The Plugin instance
 		 */
-		load: function (target, options) {
+		load: function (target, options, id) {
 			
 			let opts = {};
 			
-			this.API.id = inst.length;
+			this.API = new APILoader((!utility.isEmpty(id)) ? id : inst.length);
 			this.options = Object.assign(opts, defaults, options);
 			this.data = opts.data || {};
 			this.totalTime = (opts.endTime - opts.startTime) || 1;
@@ -1624,70 +1630,76 @@
 			
 		},
 		
-		/* The API methods available to the callback functions */
-		API: {
+	};
+	
+	/*******/
+	/* API */
+	/*******/
+	
+	API = {
+		
+		// The ID used for the isnt array to target the correct instance
+		id: 0,
+		
+		// Element Getters
+		get container () {
 			
-			// The ID used for the isnt array to target the correct instance
-			id: 0,
+			const me = inst[this.id];
 			
-			// Element Getters
-			get container () {
-				
-				const me = inst[this.id];
-				
-				if (!utility.checkInstance(me)) { return this; }
-				return me.container;
-				
-			},
-			get event () {
-				
-				const me = inst[this.id];
-				
-				if (!utility.checkInstance(me)) { return this; }
-				return (me.curEvent) ? me.curEvent.parent('div') : null;
-				
-			},
+			if (!utility.checkInstance(me)) { return this; }
+			return me.container;
 			
-			// Option Setters
-			set shiftOnEventSelect (v) {
-				
-				const me = inst[this.id];
-				
-				if (!utility.checkInstance(me)) { return this; }
-				me.options.shiftOnEventSelect = v;
-				
-			},
-			set navigateAmount (v) {
-				
-				const me = inst[this.id];
-				
-				if (!utility.checkInstance(me)) { return this; }
-				me.options.navigateAmount = v;
-				
-			},
+		},
+		get event () {
 			
-			/**
-			 * Navigate the time table in a direction or by a specified amount
-			 * @param {string|number} direction 'left', 'right', or a positive or negative amount
-			 * @param {number} duration The amount of seconds to complete the navigation animation
-			 * @return {Object} The API
-			 */
-			navigateTime: function (direction, duration) {
-				
-				const me = inst[this.id];
-				
-				if (!utility.checkInstance(me)) { return this; }
-				
-				duration = parseFloat(duration);
-				me.navigate(parseInt(direction) || direction, duration || -1);
-				
-				return this;
-				
-			},
+			const me = inst[this.id];
+			
+			if (!utility.checkInstance(me)) { return this; }
+			return (me.curEvent) ? me.curEvent.parent('div') : null;
+			
+		},
+		
+		// Option Setters
+		set shiftOnEventSelect (v) {
+			
+			const me = inst[this.id];
+			
+			if (!utility.checkInstance(me)) { return this; }
+			me.options.shiftOnEventSelect = v;
+			
+		},
+		set navigateAmount (v) {
+			
+			const me = inst[this.id];
+			
+			if (!utility.checkInstance(me)) { return this; }
+			me.options.navigateAmount = v;
+			
+		},
+		
+		/**
+		 * Navigate the time table in a direction or by a specified amount
+		 * @param {Array} direction An [x, y] Array with x = 'left' or 'right', y = 'up' or 'down', or positive or negative numbers
+		 * @param {number} duration The amount of seconds to complete the navigation animation
+		 * @return {Object} The API
+		 */
+		navigateTime: function (direction, duration) {
+			
+			const me = inst[this.id];
+			
+			if (!utility.checkInstance(me)) { return this; }
+			
+			duration = parseFloat(duration) || -1;
+			me.navigate(direction, duration);
+			
+			return this;
 			
 		},
 		
 	};
+	APILoader = function (id) { this.id = id; };
+	APILoader.prototype = API;
+	APILoader.prototype.constructor = APILoader;
 	
 	/***********/
 	/* Utility */
