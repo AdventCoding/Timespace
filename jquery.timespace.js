@@ -970,16 +970,17 @@
 		
 		/**
 		 * Navigate the time table in a direction or by a specified amount
-		 * @param {string|number} direction 'left', 'right', or a positive or negative amount
+		 * @param {string|number|Array} direction 'left', 'right', a positive or negative amount, or [x, y]
 		 * @param {number} duration The duration in seconds, or -1
-		 * @param {string} ease The transition ease type
-		 * @param {bool} isTableShift If the direction amount is the actual time table shiftPos
+		 * @param {string?} ease The transition ease type
+		 * @param {bool?} isTableShift If the direction amount is the actual time table shiftPos
 		 * @return {Object} The Plugin instance
 		 */
 		navigate: function (dir, duration, ease, isTableShift) {
 			
 			let x = dir,
-				y = 0;
+				y = 0,
+				shift = null;
 			
 			this.transition = duration;
 			this.transitionEase = ease;
@@ -993,36 +994,41 @@
 			}
 			
 			if (typeof x === 'number') {
-				
-				// If shifting time table or navigating by an amount
 				if (isTableShift) {
 					
+					// Shifting time table
 					this.shiftDirX = (x > 0) ? '>' : '<';
 					this.shiftPosX = x;
 					
 				} else {
 					
+					// Navigating by an amount
 					this.shiftDirX = (x > 0) ? '<' : '>';
 					this.shiftPosX = this.getTablePosition() - x;
 					
 				}
+			} else {
 				
-				if (y) {
-					
-					this.shiftDirY = (y > 0) ? '<' : '>';
-					this.shiftPosY = this.getTableBodyPosition() - y;
-					
-				}
+				// If direction is left, the time table is shifted to a greater amount
+				if (shift === null) { shift = [0, 0]; }
+				shift[0] = (x === 'left') ? '>' : '<';
 				
-				this.timeShift(null, null, true);
+			}
+			
+			if (y && typeof y === 'number') {
+				
+				this.shiftDirY = (y > 0) ? '<' : '>';
+				this.shiftPosY = this.getTableBodyPosition() - y;
 				
 			} else {
 				
-				// If direction is left, the time table is shifted to the right
-				x = (x === 'left') ? '>' : '<';
-				this.timeShift(null, x, true);
+				// If direction is up, the time table is shifted to a greater amount
+				if (shift === null) { shift = [0, 0]; }
+				shift[1] = (y === 'up') ? '>' : '<';
 				
 			}
+			
+			this.timeShift(null, shift, true);
 			
 			return this;
 			
@@ -1076,13 +1082,13 @@
 		
 		/**
 		 * Shift the time table
-		 * @param {Object|bool} e The jQuery Event object or false if finished
-		 * @param {string} navX The x direction to shift '<' or '>'
-		 * @param {bool} finished If the shift is finished
-		 * @param {bool} toss If the time table should be tossed on quick movement
+		 * @param {Object?} e The jQuery Event object if available
+		 * @param {Array?} nav The x and y directions to shift '<' or '>', '^' or 'v'
+		 * @param {bool?} finished If the shift is finished
+		 * @param {bool?} toss If the time table should be tossed on quick movement
 		 * @return {Object} The Plugin instance
 		 */
-		timeShift: function (e, navX, finished, toss) {
+		timeShift: function (e, nav, finished, toss) {
 			
 			if (e === null) {
 				e = { pageX: 0, pageY: 0 };
@@ -1098,11 +1104,22 @@
 				x = (touch) ? touch.x : e.pageX,
 				y = (touch) ? touch.y : e.pageY;
 			
-			if (navX) {
+			if (Array.isArray(nav)) {
 				
-				this.shiftDirX = navX;
-				this.shiftPosX = (navX === '<') ? this.getTablePosition() - opts.navigateAmount
-					: this.getTablePosition() + opts.navigateAmount;
+				if (nav[0]) {
+					
+					this.shiftDirX = nav[0];
+					this.shiftPosX = (nav[0] === '<') ? this.getTablePosition() - opts.navigateAmount
+						: this.getTablePosition() + opts.navigateAmount;
+					
+				}
+				if (nav[1]) {
+					
+					this.shiftDirY = nav[1];
+					this.shiftPosY = (nav[1] === '<') ? this.getTableBodyPosition() - opts.navigateAmount
+						: this.getTableBodyPosition() + opts.navigateAmount;
+					
+				}
 				
 			}
 			if (canShiftX) {

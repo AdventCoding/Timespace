@@ -89,7 +89,7 @@ To set the shiftOnEventSelect option from within a callback function:
 this.shiftOnEventSelect = true;
 ```
 
-### .shiftOnEventSelect
+### .navigateAmount
 
 To set the navigateAmount option from within a callback function:
 ```js
@@ -114,7 +114,7 @@ let eventBox = this.event;
 ### .navigateTime(direction, duration)
 
 Navigate the time table in a direction or by a specified amount.
- - direction : 'left', 'right', or a positive or negative amount of pixels
+ - direction : An [x, y] Array with x = 'left' or 'right', y = 'up' or 'down', or positive or negative numbers
  - duration : The amount of seconds for the time table to animate its position
 
 ## License
