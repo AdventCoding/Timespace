@@ -75,7 +75,6 @@
 /* Timeline */
 .jqTimepsaceContainer aside {
 	position: relative;
-	table-layout: fixed;
 	left: 0;
 	margin: 0;
 	padding: 0;
