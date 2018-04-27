@@ -1028,18 +1028,19 @@
 				shift[0] = (x === 'left') ? '>' : '<';
 				
 			}
-			
-			if (y && typeof y === 'number') {
-				
-				this.shiftDirY = (y > 0) ? '<' : '>';
-				this.shiftPosY = this.getTableBodyPosition() - y;
-				
-			} else {
-				
-				// If direction is up, the time table is shifted to a greater amount
-				if (shift === null) { shift = [0, 0]; }
-				shift[1] = (y === 'up') ? '>' : '<';
-				
+			if (y) {
+				if (typeof y === 'number') {
+					
+					this.shiftDirY = (y > 0) ? '<' : '>';
+					this.shiftPosY = this.getTableBodyPosition() - y;
+					
+				} else {
+					
+					// If direction is up, the time table is shifted to a greater amount
+					if (shift === null) { shift = [0, 0]; }
+					shift[1] = (y === 'up') ? '>' : '<';
+					
+				}
 			}
 			
 			this.timeShift(null, shift, true);
