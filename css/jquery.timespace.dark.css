@@ -44,7 +44,6 @@
 	cursor: pointer;
 	background: rgba(50, 57, 68, 0.451);
 	opacity: 0.7;
-	transition: background 0.4s ease-in, opacity 0.4s ease-in;
 }
 	.jqTimepsaceContainer .jqTimespaceLeft {
 		left: 0;
@@ -181,7 +180,6 @@
 		font-size: 1rem;
 		white-space: nowrap;
 		cursor: pointer;
-		transition: background-color 0.3s ease-in;
 		background: #282c34;
 	}
 	.jqTimespaceEvent p span {
@@ -216,9 +214,17 @@
 	box-shadow: 0 6px 5px -5px #000000;
 	margin: 1rem auto;
 	border: 1px solid #5f5f5f;
-	padding: 1.5rem;
+	padding: 0;
+	height: 0;
 	background: #282c34;
+	overflow: hidden;
+	transition: height 0.4s linear;
 }
+	.jqTimespaceDisplay > div {
+		margin: 0;
+		padding: 1.5rem;
+		overflow: auto;
+	}
 	.jqTimespaceDisplay h1 {
 		margin: 0;
 		padding: 0.5rem;
@@ -228,6 +234,7 @@
 	.jqTimespaceDisplay .jqTimespaceDisplayTime {
 		display: flex;
 		position: relative;
+		padding-bottom: 0.5rem;
 		align-items: center;
 		font-size: 1.1rem;
 	}
@@ -258,8 +265,11 @@
 	}
 	.jqTimespaceDisplay section {
 		margin: 0;
-		padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+		padding: 0;
 		max-width: 70%;
+	}
+	.jqTimespaceDisplay section:not(:empty) {
+		padding: 0.8rem 0.5rem 0.5rem 0.5rem;
 	}
 	@media (max-width: 50em) {
 		.jqTimespaceDisplay section {

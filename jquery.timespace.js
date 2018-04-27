@@ -272,12 +272,14 @@
 		timeTableHead: '<header></header>',
 		timeTableBody: '<section></section>',
 		display: '<article class="jqTimespaceDisplay"></article>',
+		displayWrapper: '<div></div>',
 		displayTitle: '<h1></h1>',
 		displayTimeDiv: '<div class="jqTimespaceDisplayTime"></div>',
 		displayTime: '<time></time>',
 		displayBody: '<section></section>',
 		displayLeft: '<div class="jqTimespaceDisplayLeft">&lt;</div>',
 		displayRight: '<div class="jqTimespaceDisplayRight">&gt;</div>',
+		displayObserver: null,
 		timeMarkers: null,
 		timeEvents: null,
 		wideHeadings: null,
@@ -604,9 +606,11 @@
 					const start = parseFloat(v.start) || null,
 						end = parseFloat(v.end) || null,
 						title = utility.sanitize(v.title),
-						description = (v.description instanceof $) ? v.description
+						description = (v.description instanceof $)
+							? v.description
 							: (!utility.isEmpty(v.description))
-								? $(`<p>${utility.sanitize(v.description)}</p>`) : $(),
+								? $(`<p>${utility.sanitize(v.description)}</p>`)
+								: $(),
 						width = parseInt(v.width),
 						noDetails = !!v.noDetails,
 						evtClass = (!utility.isEmpty(v.class))
@@ -763,8 +767,9 @@
 				? $(this.display).appendTo($(opts.customEventDisplay))
 				: $(this.display).appendTo(this.container)
 					.css('maxWidth', opts.maxWidth);
-			this.displayTitle = $(this.displayTitle).appendTo(this.display);
-			this.displayTimeDiv = $(this.displayTimeDiv).appendTo(this.display);
+			this.displayWrapper = $(this.displayWrapper).appendTo(this.display);
+			this.displayTitle = $(this.displayTitle).appendTo(this.displayWrapper);
+			this.displayTimeDiv = $(this.displayTimeDiv).appendTo(this.displayWrapper);
 			this.displayLeft = $(this.displayLeft)
 				.attr('title', opts.controlText.eventLeft)
 				.appendTo(this.displayTimeDiv);
@@ -772,7 +777,16 @@
 			this.displayRight = $(this.displayRight)
 				.attr('title', opts.controlText.eventRight)
 				.appendTo(this.displayTimeDiv);
-			this.displayBody = $(this.displayBody).appendTo(this.display);
+			this.displayBody = $(this.displayBody).appendTo(this.displayWrapper);
+			
+			this.displayObserver = (new MutationObserver(
+				this.updateDisplayHeight.bind(this)
+			)).observe(this.displayWrapper[0], {
+				childList: true,
+				subtree: true,
+			});
+			
+			this.updateDisplayHeight();
 			
 			return this;
 			
@@ -1238,7 +1252,8 @@
 			this.timeEvents.removeClass(classes.eventSelected);
 			this.display.show();
 			this.displayTitle.html(elem.data('title'));
-			this.displayBody.empty().append(elem.data('description'));
+			this.displayBody.empty()
+				.append(elem.data('description'));
 			elem.addClass(classes.eventSelected);
 			
 			if (!utility.isEmpty(elem.data('time'))) {
@@ -1644,6 +1659,16 @@
 			}
 			
 			return this;
+			
+		},
+		
+		/**
+		 * Update the Display element height for MutationObserver
+		 * @return {Object} The Plugin instance
+		 */
+		updateDisplayHeight: function () {
+			
+			this.display.css('height', this.displayWrapper.outerHeight(true));
 			
 		},
 		
