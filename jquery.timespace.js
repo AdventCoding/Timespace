@@ -387,6 +387,10 @@
 				this.display.hide();
 			}
 			
+			this.timeTable.append(
+				$('<div></div>').height(this.dataContainer.height())
+			);
+			
 			return this;
 			
 		},
@@ -1183,19 +1187,17 @@
 				|| (this[shiftDir] === '>' && this[shiftPos] <= 0)) {
 				
 				this[target].css(css, this[shiftPos] + 'px');
-				if (isX) { this.dataContainer.css('backgroundPosition', `bottom 0 left ${Math.floor(this[shiftPos] / 3)}px`); }
 				
 			} else if (this[shiftDir] === '<' && this[shiftPos] < -this.viewData[tableOffset]) {
 				
 				this[shiftPos] = -this.viewData[tableOffset];
 				this[target].css(css, -this.viewData[tableOffset] + 'px');
-				if (isX) { this.dataContainer.css('backgroundPosition', `bottom 0 left ${Math.floor(-this.viewData[tableOffset] / 3)}px`); }
 				
 			} else if (this[shiftDir] === '>' && this[shiftPos] > 0) {
 				
 				this[shiftPos] = 0;
 				this[target].css(css, 0);
-				if (isX) { this.dataContainer.css('backgroundPosition', 'bottom 0 left 0'); }
+				
 			}
 			
 			if (isX) { this.container.trigger('shiftX.jqTimespace'); }

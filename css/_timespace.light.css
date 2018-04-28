@@ -5,7 +5,7 @@
 	--border-dull: #b4b4b4;
 	--border-select: #9e9e9e;
 	--border-transparent: rgba(255, 255, 255, 0);
-	--bg-url: url('../images/timespace.line.light.png');
+	--bg-filter: brightness(0.6);
 	--bg-gradient: linear-gradient(to top, #444444 0%, #afafaf 15%, #ffffff 100%);
 	--bg-primary: #fff9f5;
 	--bg-secondary: #fffaf2;

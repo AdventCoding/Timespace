@@ -24,9 +24,9 @@
 		box-shadow: 0 6px 5px -5px var(--shadow);
 		margin: 1rem auto;
 		border: 1px solid var(--border-secondary);
-		background: var(--bg-dull) var(--bg-url) bottom left repeat-x;
 		-moz-user-select: none;
 		user-select: none;
+		background: var(--bg-dull);
 	}
 
 /* Navigation and Line Guide */
@@ -138,6 +138,17 @@
 		position: relative;
 		top: 0;
 		min-height: 100%;
+	}
+	.jqTimepsaceContainer aside > div {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		background: url('../images/timespace.line.svg') bottom repeat-x;
+		filter: var(--bg-filter);
+		opacity: 0.8;
 	}
 	.jqTimepsaceContainer aside .jqTimespaceColumn {
 		box-sizing: border-box;
