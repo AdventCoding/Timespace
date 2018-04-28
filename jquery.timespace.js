@@ -387,10 +387,6 @@
 				this.display.hide();
 			}
 			
-			this.timeTable.append(
-				$('<div></div>').height(this.dataContainer.height())
-			);
-			
 			return this;
 			
 		},
